@@ -44,12 +44,40 @@
 <!-- Javascript stuff -->
 <script> //UTILITY FUNCTIONALITY FOR JAVASCRIPT
 
+//OPTIONS
+var viewport_scale = 1;  //DO NOT CHANGE
+var pers_scale = 2;
+
+
 ///////
+
+function onResize() {
+    return null; //  #NADA
+    //var h = document.height;
+    //var w = document.width;
+    //alert(h);
+    canvas = document.getElementById("map");
+
+    var ch = canvas.height 
+    var cw = canvas.width 
+
+    //canvas.style.height = h * 0.9;
+    //canvas.style.width = h * 0.9;
+
+    gl.viewport(-cw*pers_scale,-ch*pers_scale,cw*pers_scale,ch*pers_scale);               //HACK - KINDA WORKS BUT LIMITS DISPLAY RANGE???
+    //alert(gl.viewportWidth);                                                          // Could adding a scale matrix fix???
+    gl.viewportHeight = ch*pers_scale;
+    gl.viewportWidth = cw * pers_scale;
+    alert(gl.viewportWidth);
+}
+
+
+
 function initGL(canvas) {
     try {
         gl = canvas.getContext("experimental-webgl");
-        gl.viewportWidth = canvas.width;
-        gl.viewportHeight = canvas.height;
+        gl.viewportWidth = canvas.width * viewport_scale;    
+        gl.viewportHeight = canvas.height * viewport_scale;
         //alert("DEBUG: LOADED");
     } catch (e) {
         //DEBUG
@@ -57,7 +85,17 @@ function initGL(canvas) {
     if (!gl) {
         alert("ERROR: Failed to initialise WebGL");
     }
+    /// Sneakyness
 
+    //canvas.style.width = "100%";
+   // canvas.style.height = "100%";
+
+    var fmap = document.getElementById("frame_map");
+   // fmap.style.width = "90%";
+   // fmap.style.height = "90%";
+
+
+    onResize();
 }
 
 //WebGL Access functionality
@@ -94,20 +132,19 @@ function matrix_update() {
     mat4.translate(MRmatrix,MRmatrix,camLoc);
     //
     Fmatrix = mat4.create();
-    mat4.perspective(Fmatrix,80,gl.viewportWidth / gl.viewportHeight,0.1,100);
-    //
-    //mat4.identity(Fmatrix);
-    //mat4.identity(MRmatrix);
-    //alert(mat4.str(Fmatrix));
+    //Experimental hack location 2
+    //var hack = vec3.fromValues(1/pers_scale, 1/pers_scale, 1/pers_scale);
 
-    //DEBUG BECAUSE
-    //test_in = vec3.fromValues(1,-1,0);
-    //test_out = vec3.fromValues(0,0,0);
-    //test_data = mat4.create();
-    //mat4.multiply(test_data,MRmatrix,Fmatrix);
-    //vec3.transformMat4(test_out,test_in,test_data);
-   //mat4.multiply(test_data,Fmatrix,MRmatrix);
-    //alert("LOC= " + vec3.str(test_out));
+
+    //mat4.scale(Fmatrix,Fmatrix,hack);  ///HACKZ PART 2
+
+    mat4.perspective(Fmatrix,80,gl.viewportWidth / gl.viewportHeight,0.1,100);
+
+    //Experimental added scale matrix
+    //var hack = vec3.fromValues(1/pers_scale, 1/pers_scale, 1/pers_scale);
+
+    //mat4.scale(Fmatrix,Fmatrix,hack);  ///HACKZ PART 2
+
 
 	//
     //alert("DATA-MAT4: " + " mr="+mat4.str(MRmatrix)+ ", f="+mat4.str(Fmatrix));
@@ -162,7 +199,7 @@ function loadWebGL() {
     initShaders();
     initBuffers();
     //////
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);              //****** ***///   DEBUG CLEAR COLOR TESTING
     gl.enable(gl.DEPTH_TEST);
 
     // \/ TO TURN INTO DRAW CALLING REPEATABLE
@@ -184,7 +221,9 @@ function initBuffers() {
 
 function init_draw() { //RESET CURRENT BUFFER FOR REUSE
     draw_buffer.numItems = 0;
-    gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+    //gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);   ///INCLUDE???
+    //gl.viewport(0,0,1366,786);
+    //gl.viewport(0,0,)
     //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
 
@@ -197,8 +236,8 @@ function addToBufferA(array,size) {
     addToBuffer(new Float32Array(array),size);
 }
 
-function draw() {
-    //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); //TEST PROB NEEDED
+function draw() {  //FIRST DRAW CALL PER FRAME
+    //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); //TEST PROB NEEDED   DEBUG TESTING
     switchBuffers();
     bindBuffer();   
     matrix_update();
@@ -208,7 +247,9 @@ function draw() {
 }
 
 
-
+function draw_additional() {  //ADDITIONAL DRAW CALLS PER FRAME
+    gl.drawArrays(gl.TRIANGLES, 0, draw_buffer.numItmes);
+}
 
 
 
@@ -227,7 +268,7 @@ function draw() {
 
 	<div id="frame_map" >
 
-		<canvas id="map">
+		<canvas id="map" onResize="onResize();">
 
 
 		</canvas>
@@ -264,9 +305,18 @@ function draw() {
 	position: inherit;
 	height: 90%;
 	width: 90%;
+    /**
+    height: 786px;
+    width: 1366px;
+    **/
+
+    /***/
 	background-color: black;
 	margin-left: 2%;
 	margin-right: 0px;
+    /**
+    margin-left: 10px;
+    margin-top: 10px;**/
 	margin-top: 2%;
 	margin-bottom: 0px;	
 	left: 0px;
@@ -280,10 +330,24 @@ function draw() {
 	margin-right: 0px;
 	margin-top: 0px;
 	margin-bottom: 0px;
+    
 	height: 100%;
 	width: 100%;
+    /**
+    height: 786px;
+    width: 1366px; **/
 }
 
+canvas {  /** CSS GRAPHICS NINJANESS  --- ALTHOUGH I AM NOT SURE IT WORKS**/
+
+  width: 200%;
+  height: 200%;
+
+/**
+    width: 1920px;
+    height: 1080px;
+**/
+}
 
 </style>
 <!-- Main WEBGL BOOT!! -->
@@ -300,6 +364,8 @@ function draw() {
 function mainLoop() {
 	//
 	renderLoop();
+    //
+    inputLoop();
 	//
 	communicationLoop();
 }
@@ -391,8 +457,8 @@ function renderLoop() {
 
     addToBufferA(cube,36);
 
-    camRZ = toRADS(debug);
-    //camRX = toRADS(debug);
+    //camRZ = toRADS(debug);
+    camRX = toRADS(debug);
     camRY = toRADS(debug);
     //vec3.add(camLoc,camLoc,vec3.fromValues(1,1,1));
 
@@ -406,6 +472,64 @@ function renderLoop() {
 function communicationLoop() {
 	//
 }
+
+function inputLoop() {
+
+    if(keys[87]) { //W
+
+    }
+    //
+    if(keys[65]) { //A
+
+    }
+    //
+    if(keys[83]) { //S
+
+    }
+    //
+    if(keys[68]) { //D
+
+    }
+
+    //
+
+
+    if(keys[27]) { //Esc
+
+    }
+
+
+}
+
+//Handlers
+
+//var w_k = false;
+//var a_k = false;
+//var d_k = false;
+//var s_k = false;
+//var esc = false;
+var keys = [];
+
+
+window.addEventListener("keydown", key_down, false);
+window.addEventListener("keypress", key_press, false);
+window.addEventListener("keyup", key_up, false);
+ 
+function key_down(e) {
+    keys[e.keyCode] = true;
+}
+
+function key_press(e) {
+    keys[e.keyCode] = true;
+}
+
+function key_up(e) {
+    keys[e.keyCode] = false;
+}
+
+
+
+/////////
 
 setInterval(mainLoop,20);//200);
 //setInterval(mainLoop,100);

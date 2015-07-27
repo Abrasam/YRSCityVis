@@ -1,10 +1,74 @@
+<!-- Gl Matrix - matrix library-->
+<script type="text/javascript" src="gl-matrix-min.js" ></script>
+
+<!-- Javascript stuff -->
+<script>
+
+
+
+
+
+//WebGL Access functionality
+var gl;
+
+
+function loadGL() {
+    var canvas = document.getElementById("map");
+    initGL(canvas);
+    
+
+    gl.clearColor(0.0, 0.0, 1.0, 1.0);
+    gl.enable(gl.DEPTH_TEST);
+
+
+  }
+
+
+function initGL(canvas) {
+    try {
+        gl = canvas.getContext("experimental-webgl");
+        gl.viewportWidth = canvas.width;
+        gl.viewportHeight = canvas.height;
+        alert("DEBUG: LOADED");
+    } catch (e) {
+    	//DEBUG
+    }
+    if (!gl) {
+        alert("ERROR: Failed to initialise WebGL");
+    }
+}
+
+
+
+//////////////////////////
+
+//Main scripting
+
+
+
+///// Load DATA
+
+
+
+
+
+///INIT
+
+
+
+//Rendering
+
+
+
+</script>
+
 
 <!-- Basic HTML Framework-->
 <html>
 
 <body id="body">
 
-	<div id="frame_map" onload="webGLStart();">
+	<div id="frame_map" >
 
 		<canvas id="map">
 
@@ -43,49 +107,14 @@
 
 
 </style>
+<!-- Main WEBGL BOOT!! -->
 
-<!-- Javascript stuff -->
 <script>
+loadGL();
+
+//Main Rendering
 
 
-
-
-
-//WebGL Access functionality
-
-function webGLStart() {
-    var canvas = document.getElementById("map");
-    initGL(canvas);
-    initShaders();
-    initBuffers();
-
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    gl.enable(gl.DEPTH_TEST);
-
-    
-  }
-
-
-
-
-
-//////////////////////////
-
-//Main scripting
-
-
-
-///// Load DATA
-
-
-
-
-
-///INIT
-
-
-
-//Rendering
 
 
 </script>

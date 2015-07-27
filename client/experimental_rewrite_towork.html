@@ -1,6 +1,9 @@
 <!-- Gl Matrix - matrix library-->
 <script type="text/javascript" src="gl-matrix-min.js" ></script>
 
+<!-- Util script lib by me-->
+<script type="text/javascript" src="utils.js" ></script>
+
 <script id="shader.fragment" type="x-shader/x-fragment">
     precision mediump float;
 
@@ -30,7 +33,7 @@
 
 
 <!-- Javascript stuff -->
-<script>
+<script> //UTILITY FUNCTIONALITY FOR JAVASCRIPT
 
 ///////
 function initGL(canvas) {
@@ -51,7 +54,7 @@ function initGL(canvas) {
 //WebGL Access functionality
 var gl = null;
 /////
-var buffer = null; //Vertex Buffer to push
+var draw_buffer = null; //Vertex Buffer to push
 var shaderProgram = null; //Shader
 //
 var Fmatrix = mat4.create();
@@ -79,49 +82,13 @@ function matrix_update() {
 }
 
 function addToBuffer(array,size) { //pass Float32Array
-	buffer.numItems += size;
+	draw_buffer.numItems += size;
 	gl.bufferData(gl.ARRAY_BUFFER,array, gl.STATIC_DRAW);
 }
 
 ////
 
-//Util script - thanks to webGLlesson
-function getShader(gl, id) {
-    var shaderScript = document.getElementById(id);
-    if (!shaderScript) {
-        return null;
-    }
 
-    var str = "";
-    var k = shaderScript.firstChild;
-    while (k) {
-        if (k.nodeType == 3) {
-            str += k.textContent;
-        }
-        k = k.nextSibling;
-    }
-
-    var shader;
-    if (shaderScript.type == "x-shader/x-fragment") {
-        shader = gl.createShader(gl.FRAGMENT_SHADER);
-    } else if (shaderScript.type == "x-shader/x-vertex") {
-        shader = gl.createShader(gl.VERTEX_SHADER);
-    } else {
-        return null;
-    }
-
-    gl.shaderSource(shader, str);
-    gl.compileShader(shader);
-
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        alert("NO COMPILE");
-        alert(gl.getShaderInfoLog(shader));
-        return null;
-    }
-
-    return shader;
-}
-//END
 
 
 function initShaders() {
@@ -264,40 +231,18 @@ function communicationLoop() {
 
 setInterval(mainLoop,2000);//200);
 
-    
-
-
-    var mvMatrix = mat4.create();
-    var pMatrix = mat4.create();
-
-
-
-    var triangleVertexPositionBuffer;
-    var squareVertexPositionBuffer;
 
     function initBuffers() {
-        triangleVertexPositionBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
+        draw_buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, draw_buffer);
         var vertices = [
              0.0,  1.0,  0.0,
             -1.0, -1.0,  0.0,
              1.0, -1.0,  0.0
         ];
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-        triangleVertexPositionBuffer.itemSize = 3;
-        triangleVertexPositionBuffer.numItems = 3;
-
-        squareVertexPositionBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
-        vertices = [
-             1.0,  1.0,  0.0,
-            -1.0,  1.0,  0.0,
-             1.0, -1.0,  0.0,
-            -1.0, -1.0,  0.0
-        ];
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-        squareVertexPositionBuffer.itemSize = 3;
-        squareVertexPositionBuffer.numItems = 4;
+        draw_buffer.itemSize = 3;
+        draw_buffer.numItems = 3;
     }
 
 
@@ -306,15 +251,10 @@ setInterval(mainLoop,2000);//200);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         matrix_update();
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
-        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, triangleVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.drawArrays(gl.TRIANGLES, 0, triangleVertexPositionBuffer.numItems);
+        gl.bindBuffer(gl.ARRAY_BUFFER, draw_buffer);
+        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, draw_buffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.drawArrays(gl.TRIANGLES, 0, draw_buffer.numItems);
 
-
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
-        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
     }
 
 
@@ -324,10 +264,11 @@ setInterval(mainLoop,2000);//200);
         initGL(canvas);
         initShaders();
         initBuffers();
-
+        //////
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.enable(gl.DEPTH_TEST);
 
+        // \/ TO TURN INTO DRAW CALLING REPEATABLE
         draw();
     }
 

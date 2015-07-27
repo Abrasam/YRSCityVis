@@ -1,0 +1,91 @@
+
+<!-- Basic HTML Framework-->
+<html>
+
+<body id="body">
+
+	<div id="frame_map" onload="webGLStart();">
+
+		<canvas id="map">
+
+
+		</canvas>
+
+	</div>
+</body>
+
+</html>
+<!-- Style for main website outline -->
+<style>
+
+*{
+	position: inherit;
+}
+
+#body {
+	background-color="#FFFFDD"
+}
+
+
+#frame_map {
+	position: inherit;
+	//#left: 40px;
+	//#top: 40px;
+	//#height: 200px;
+	//#width: 500px;
+	//#
+	left: 5%;
+	top: 5%;
+	height: 90%;
+	width: 90%;
+	background-color: black;
+}
+
+
+</style>
+
+<!-- Javascript stuff -->
+<script>
+
+
+
+
+
+//WebGL Access functionality
+
+function webGLStart() {
+    var canvas = document.getElementById("map");
+    initGL(canvas);
+    initShaders();
+    initBuffers();
+
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.enable(gl.DEPTH_TEST);
+
+    
+  }
+
+
+
+
+
+//////////////////////////
+
+//Main scripting
+
+
+
+///// Load DATA
+
+
+
+
+
+///INIT
+
+
+
+//Rendering
+
+
+</script>

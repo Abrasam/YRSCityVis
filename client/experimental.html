@@ -37,7 +37,7 @@ var shaderProgram = null; //Shader
 var Fmatrix = mat4.create();
 var MRmatrix = mat4.create();
 //
-var camLoc = vec3.fromValues(1,1,1);
+var camLoc = vec3.fromValues(0,0,0);
 //
 var camRX = 0;
 var camRY = 0;
@@ -50,21 +50,7 @@ function loadGL() {
     initGL(canvas);
     initShaders();
     initBuffers();
-    //
-    gl.enableVertexAttribArray(positionlocation);
-    gl.vertexAttribPointer(positionlocation, buffer.itemSize, gl.FLOAT, false, 0, 0);
-    //
-
-    gl.clearColor(0.1, 0.1, 0.1, 1.0);
-    gl.enable(gl.DEPTH_TEST);
-
-    //INIT MATRIX BASIC
-    //Basic Matrix (Perspective)
-    Fmatrix = mat4.create();
-    mat4.perspective(Fmatrix,80,16/9,0.1,100);
-    //
-    gl.viewport(0, 0, gl.viewportWidth / gl.viewportHeight, gl.viewportHeight);
-  }
+}
 
 
 
@@ -73,7 +59,6 @@ function getShader(gl, id) {
     if (!shaderScript) {
         return null;
     }
-
     var str = "";
     var k = shaderScript.firstChild;
     while (k) {
@@ -82,7 +67,6 @@ function getShader(gl, id) {
         }
         k = k.nextSibling;
     }
-
     var shader;
     if (shaderScript.type == "x-shader/x-fragment") {
         shader = gl.createShader(gl.FRAGMENT_SHADER);
@@ -91,16 +75,13 @@ function getShader(gl, id) {
     } else {
         return null;
     }
-
     gl.shaderSource(shader, str);
     gl.compileShader(shader);
-
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
     	alert("NO COMPILE");
         alert(gl.getShaderInfoLog(shader));
         return null;
     }
-
     return shader;
 }
 
@@ -109,15 +90,15 @@ function initShaders() { //Basic shader init code,thanks
     var vertexShader = getShader(gl, "shader.vertex");
 /////////
 	shaderProgram = gl.createProgram();
-	if(shaderProgram == null) {
-		alert("no shader program");
-	}
-	if(vertexShader == null) {
-		alert("no vertex shader");
-	}
-	if(fragmentShader == null) {
-		alert("no fragment shader");
-	}
+    	if(shaderProgram == null) {
+    		alert("no shader program");
+    	}
+    	if(vertexShader == null) {
+    		alert("no vertex shader");
+    	}
+    	if(fragmentShader == null) {
+    		alert("no fragment shader");
+    	}
     gl.attachShader(shaderProgram, vertexShader);
     gl.attachShader(shaderProgram, fragmentShader);
     gl.linkProgram(shaderProgram);
@@ -125,14 +106,13 @@ function initShaders() { //Basic shader init code,thanks
 
     if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
             alert("Could not initialise shaders");
-        }
+    }
 
     gl.useProgram(shaderProgram);
 
     positionlocation = gl.getAttribLocation(shaderProgram, "position");
-    shaderProgram.vertexPositionAttribute = positionlocation;//"aVertexPosition");
-    //gl.enable
-
+    shaderProgram.vertexPositionAttribute = positionlocation;
+    //
     shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
     shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
 
@@ -145,7 +125,7 @@ function initBuffers() {
 	buffer.itemSize = 3;
 }
 
-function matrix_setup() {
+function matrix_update() {
 	//Camera update
 	MRmatrix = mat4.create();
 	//
@@ -154,20 +134,21 @@ function matrix_setup() {
 	mat4.rotateY(MRmatrix,MRmatrix,camRY);
 	mat4.rotateZ(MRmatrix,MRmatrix,camRZ);
 	//
-
-	//
     gl.uniformMatrix4fv(shaderProgram.Fmatrix, false, Fmatrix);
     gl.uniformMatrix4fv(shaderProgram.MRmatrix, false, MRmatrix);
 }
 
 function init_draw() {
-	
+    gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
     matrix_setup();
+
 }
 
 function draw() {
     //
+    gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
     buffer.itemSize = 3;
     //gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
     //gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
@@ -303,24 +284,14 @@ function mainLoop() {
 
 function renderLoop() {
 	init_draw();
-	//gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-        //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-
 
 	var vertices = [
              0.0, 1.0, 0.0,
              1.0, 1.0, 0.0,
              0.0, 0.0, 0.0
-        ];
-
+    ];
+    alert("P");
     addToBuffer(new Float32Array(vertices),3);
-
-    //gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    //gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, buffer.itemSize, gl.FLOAT, false, 0, 0);
-    //setMatrixUniforms();
-    //gl.drawArrays(gl.TRIANGLES, 0, buffer.numItems);
-
 	draw();
 }
 

@@ -1,6 +1,25 @@
 <!-- Gl Matrix - matrix library-->
 <script type="text/javascript" src="gl-matrix-min.js" ></script>
 
+<script id="shader.fragment" type="x-shader/x-fragment">
+    precision mediump float;
+
+    void main(void) {
+        gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+    }
+</script>
+
+<script id="shader.vertex" type="x-shader/x-vertex">
+    attribute vec3 position;
+
+    uniform mat4 Fmatrix;
+    uniform mat4 MVmatrix;
+
+    void main(void) {
+    	gl_Position = Fmatrix * MVmatrix * vec4(position,1.0);
+    }
+</script>
+
 <!-- Javascript stuff -->
 <script>
 
@@ -12,6 +31,7 @@
 var gl;
 /////
 var buffer; //Vertex Buffer to push
+var shaderProgram
 //
 var Fmatrix;
 var MRmatrix;
@@ -26,6 +46,8 @@ var camRZ = 0;
 function loadGL() {
     var canvas = document.getElementById("map");
     initGL(canvas);
+    initBuffers();
+    initShaders();
 
     gl.clearColor(0.0, 0.0, 1.0, 1.0);
     gl.enable(gl.DEPTH_TEST);
@@ -40,14 +62,54 @@ function loadGL() {
 
 function initBuffers() {
 	buffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
-
+	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
 }
 
+
+function initShaders() { //Basic shader init code,thanks
+	var fragmentShader = getShader(gl, "shader.fragment");
+    var vertexShader = getShader(gl, "shader.vertex");
+/////////
+	shaderProgram = gl.createProgram();
+	if(shaderProgram == null) {
+		alert("no shader program");
+	}
+	if(vertexShader == null) {
+		alert("no vertex shader");
+	}
+	if(fragmentShader == null) {
+		alert("no fragment shader");
+	}
+    gl.attachShader(shaderProgram, vertexShader);
+    gl.attachShader(shaderProgram, fragmentShader);
+    gl.linkProgram(shaderProgram);
+
+
+    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+            alert("Could not initialise shaders");
+        }
+
+    gl.useProgram(shaderProgram);
+
+    shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+    //gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);  //Broke?
+
+    shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+    shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+
+}
 
 function draw() {
 	gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    //
+    buffer.itemSize = 3;
+    //
+    gl.drawArrays(gl.TRIANGLES, 0, buffer.numItems);
+}
+
+function addVert(x,y,z) {
+
 }
 
 
@@ -55,17 +117,56 @@ function matrix_setup() {
 	//Camera update
 	MRmatrix = mat4.create();
 	//
-	mat4.translate(MRmatrix,camLoc);
-	mat4.rotateX(MRmatrix,camRX);
-	mat4.rotateY(MRmatrix,camRY);
-	mat4.rotateZ(MRmatrix,camRZ);
+	mat4.translate(MRmatrix,MRmatrix,camLoc);
+	mat4.rotateX(MRmatrix,MRmatrix,camRX);
+	mat4.rotateY(MRmatrix,MRmatrix,camRY);
+	mat4.rotateZ(MRmatrix,MRmatrix,camRZ);
 	//
 
 	//
-    gl.uniformMatrix4fv(shaderProgram.Fmatrixuniform, false, Fmatrix);
-    gl.uniformMatrix4fv(shaderProgram.mrmatrixuniform, false, MRmatrix);
+    gl.uniformMatrix4fv(shaderProgram.Fmatrix, false, Fmatrix);
+    gl.uniformMatrix4fv(shaderProgram.MRmatrix, false, MRmatrix);
 }
 
+////
+
+//Util script - thanks to webGLlesson
+function getShader(gl, id) {
+    var shaderScript = document.getElementById(id);
+    if (!shaderScript) {
+        return null;
+    }
+
+    var str = "";
+    var k = shaderScript.firstChild;
+    while (k) {
+        if (k.nodeType == 3) {
+            str += k.textContent;
+        }
+        k = k.nextSibling;
+    }
+
+    var shader;
+    if (shaderScript.type == "x-shader/x-fragment") {
+        shader = gl.createShader(gl.FRAGMENT_SHADER);
+    } else if (shaderScript.type == "x-shader/x-vertex") {
+        shader = gl.createShader(gl.VERTEX_SHADER);
+    } else {
+        return null;
+    }
+
+    gl.shaderSource(shader, str);
+    gl.compileShader(shader);
+
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    	alert("NO COMPILE");
+        alert(gl.getShaderInfoLog(shader));
+        return null;
+    }
+
+    return shader;
+}
+//END
 
 
 
@@ -166,7 +267,10 @@ function initGL(canvas) {
 <script>
 loadGL();
 
-//Main Rendering Loop stuff
+
+//Main DATA storage
+
+//Main Loops
 
 function mainLoop() {
 	//
@@ -177,9 +281,18 @@ function mainLoop() {
 
 
 function renderLoop() {
-	matrix_setup();
+	matrix_setup(); //Alter matrix to account for camera calls
 	//Render pushes
+	var vertices = [
+             0.0,  1.0,  0.0,
+            -1.0, -1.0,  0.0,
+             1.0, -1.0,  0.0
+        ];
 
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+    buffer.numItems = 3;
+
+	draw();
 }
 
 function communicationLoop() {

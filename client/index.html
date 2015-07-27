@@ -10,20 +10,66 @@
 
 //WebGL Access functionality
 var gl;
-
+/////
+var buffer; //Vertex Buffer to push
+//
+var Fmatrix;
+var MRmatrix;
+//
+var camLoc = vec3.fromValues(0,0,0);
+//
+var camRX = 0;
+var camRY = 0;
+var camRZ = 0;
+//
 
 function loadGL() {
     var canvas = document.getElementById("map");
     initGL(canvas);
-    
 
     gl.clearColor(0.0, 0.0, 1.0, 1.0);
     gl.enable(gl.DEPTH_TEST);
+    //INIT MATRIX BASIC
+    //Basic Matrix (Perspective)
 
+    Fmatrix = mat4.create();
+    mat4.perspective(Fmatrix,80,16/9,10,100);
+    //
 
   }
 
+function initBuffers() {
+	buffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
 
+}
+
+
+function draw() {
+	gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+}
+
+
+function matrix_setup() {
+	//Camera update
+	MRmatrix = mat4.create();
+	//
+	mat4.translate(MRmatrix,camLoc);
+	mat4.rotateX(MRmatrix,camRX);
+	mat4.rotateY(MRmatrix,camRY);
+	mat4.rotateZ(MRmatrix,camRZ);
+	//
+
+	//
+    gl.uniformMatrix4fv(shaderProgram.Fmatrixuniform, false, Fmatrix);
+    gl.uniformMatrix4fv(shaderProgram.mrmatrixuniform, false, MRmatrix);
+}
+
+
+
+
+///////
 function initGL(canvas) {
     try {
         gl = canvas.getContext("experimental-webgl");
@@ -36,6 +82,7 @@ function initGL(canvas) {
     if (!gl) {
         alert("ERROR: Failed to initialise WebGL");
     }
+
 }
 
 
@@ -105,6 +152,13 @@ function initGL(canvas) {
 	background-color: black;
 }
 
+#map {
+	left: 1px;
+	right: 1px;
+	height: 95%;
+	width: 95%;
+}
+
 
 </style>
 <!-- Main WEBGL BOOT!! -->
@@ -112,8 +166,27 @@ function initGL(canvas) {
 <script>
 loadGL();
 
-//Main Rendering
+//Main Rendering Loop stuff
 
+function mainLoop() {
+	//
+	renderLoop();
+	//
+	communicationLoop();
+}
+
+
+function renderLoop() {
+	matrix_setup();
+	//Render pushes
+
+}
+
+function communicationLoop() {
+	//
+}
+
+setInterval(mainLoop,2000);//200);
 
 
 

@@ -19,8 +19,10 @@
     uniform mat4 MVmatrix;
 
     void main(void) {
-    	//gl_Position = Fmatrix * MVmatrix * vec4(position,1.0);  
-    	gl_Position = vec4(position, 1.0);  //#DEBUG CODE - REMOVe
+    	gl_Position = Fmatrix * MVmatrix * vec4(position,1.0);  
+        //gl_Position = vec4(position,1.0) * MVmatrix * Fmatrix
+        //gl_Position = vec4(position,1.0) * MVmatrix;  //MORE DEBUG
+    	//gl_Position = vec4(position, 1.0);  //#DEBUG CODE - REMOVe
     }
 </script>
 
@@ -55,6 +57,11 @@ function initGL(canvas) {
 var gl = null;
 /////
 var draw_buffer = null; //Vertex Buffer to push
+var draw_buffer_alt = null;
+var draw_buffer_a = null;
+var draw_buffer_b = null;
+
+/////
 var shaderProgram = null; //Shader
 //
 var Fmatrix = mat4.create();
@@ -76,19 +83,35 @@ function matrix_update() {
 	mat4.rotateX(MRmatrix,MRmatrix,camRX);
 	mat4.rotateY(MRmatrix,MRmatrix,camRY);
 	mat4.rotateZ(MRmatrix,MRmatrix,camRZ);
+    //
+    Fmatrix = mat4.create();
+    mat4.perspective(Fmatrix,80,gl.viewportWidth / gl.viewportHeight,0.1,100);
+    //
+    mat4.identity(Fmatrix);
+    mat4.identity(MRmatrix);
+    alert(mat4.str(MRmatrix));
 	//
     gl.uniformMatrix4fv(shaderProgram.Fmatrix, false, Fmatrix);
     gl.uniformMatrix4fv(shaderProgram.MRmatrix, false, MRmatrix);
 }
 
 function addToBuffer(array,size) { //pass Float32Array
-	draw_buffer.numItems += size;
+	draw_buffer_alt.numItems += size;
 	gl.bufferData(gl.ARRAY_BUFFER,array, gl.STATIC_DRAW);
 }
 
 ////
 
+function switchBuffers() {
+    var temp;
+    temp = draw_buffer;
+    draw_buffer = draw_buffer_alt;
+    draw_buffer_alt = temp;
+}
 
+function bindBuffer() {
+    gl.bindBuffer(gl.ARRAY_BUFFER, draw_buffer);
+}
 
 
 function initShaders() {
@@ -112,6 +135,56 @@ function initShaders() {
     shaderProgram.fMatrixUniform = gl.getUniformLocation(shaderProgram, "uFMatrix");
     shaderProgram.mrMatrixUniform = gl.getUniformLocation(shaderProgram, "uMRMatrix");
 }
+
+function loadWebGL() {
+    var canvas = document.getElementById("map");
+    initGL(canvas);
+    initShaders();
+    initBuffers();
+    //////
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.enable(gl.DEPTH_TEST);
+
+    // \/ TO TURN INTO DRAW CALLING REPEATABLE
+    //////draw();
+
+}
+
+/////
+function initBuffers() {
+    draw_buffer = gl.createBuffer();
+    draw_buffer_alt = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, draw_buffer);
+    ////////SETUP
+    draw_buffer.itemSize = 3;
+    draw_buffer.numItems = 0;
+    gl.bindBuffer(gl.ARRAY_BUFFER, draw_buffer);
+}
+
+
+function init_draw() { //RESET CURRENT BUFFER FOR REUSE
+    draw_buffer.numItems = 0;
+    gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+}
+
+function addToBuffer(array,size) { //pass Float32Array
+    draw_buffer.numItems += size;
+    gl.bufferData(gl.ARRAY_BUFFER,array, gl.STATIC_DRAW);
+}
+
+function draw() {
+    
+    switchBuffers();
+    bindBuffer();   
+    matrix_update();
+    //Cleanup
+    //draw_buffer_alt.numItems = 0;  //CHANGE
+    //
+    gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);//shaderProgram.vertexPositionAttribute, draw_buffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.drawArrays(gl.TRIANGLES, 0, draw_buffer.numItems);
+}
+
 
 
 
@@ -210,67 +283,56 @@ function mainLoop() {
 	communicationLoop();
 }
 
+var debug = 0;
 
 function renderLoop() {
-    return; //NADa
 	init_draw();
 
 	var vertices = [
-             0.0, 1.0, 0.0,
-             1.0, 1.0, 0.0,
-             0.0, 0.0, 0.0
+         0.0,  1.0,  0.0,
+        -1.0, -1.0,  0.0,
+         1.0, -1.0,  0.0
     ];
+
+    var vertices_2 = [
+         0.0,  0.8,  0.0,
+        -1.0, -1.0,  0.0,
+         1.0, -1.0,  0.0
+    ];
+
+
+    var vertices_3 = [
+         0.0,  0.2,  0.0,
+        -1.0, -1.0,  0.0,
+         1.0, -1.0,  0.0
+    ];
+
     //alert("P");
-    addToBuffer(new Float32Array(vertices),3);
+    if(debug == 1) {
+        addToBuffer(new Float32Array(vertices),3);
+    }else if(debug == 2) {
+        addToBuffer(new Float32Array(vertices_2),3);
+    }else if(debug == 3) {
+        addToBuffer(new Float32Array(vertices_3),3);
+    }else {
+        addToBuffer(new Float32Array(vertices),3);
+    }
+
 	draw();
+    //
+    debug +=1;
+    if(debug > 3) { debug = 0;}
+
 }
 
 function communicationLoop() {
 	//
 }
 
-setInterval(mainLoop,2000);//200);
-
-
-    function initBuffers() {
-        draw_buffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, draw_buffer);
-        var vertices = [
-             0.0,  1.0,  0.0,
-            -1.0, -1.0,  0.0,
-             1.0, -1.0,  0.0
-        ];
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-        draw_buffer.itemSize = 3;
-        draw_buffer.numItems = 3;
-    }
-
-
-    function draw() {
-        gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        matrix_update();
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, draw_buffer);
-        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, draw_buffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.drawArrays(gl.TRIANGLES, 0, draw_buffer.numItems);
-
-    }
+setInterval(mainLoop,500);//200);
 
 
 
-    function loadWebGL() {
-        var canvas = document.getElementById("map");
-        initGL(canvas);
-        initShaders();
-        initBuffers();
-        //////
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.enable(gl.DEPTH_TEST);
-
-        // \/ TO TURN INTO DRAW CALLING REPEATABLE
-        draw();
-    }
 
 loadWebGL();
 

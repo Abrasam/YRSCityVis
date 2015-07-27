@@ -7,22 +7,29 @@
 <script id="shader.fragment" type="x-shader/x-fragment">
     precision mediump float;
 
+
     void main(void) {
         gl_FragColor = vec4(1.0, 0.0, 1.0, 0.5);
+        //gl_FragColor = vColor;
     }
 </script>
 
 <script id="shader.vertex" type="x-shader/x-vertex">
     attribute vec3 position;
+    //attribute vec4 basic_color;
 
     uniform mat4 uFmatrix;
     uniform mat4 uMRmatrix;
 
+
+    varying vec3 v;
+    varying vec3 c;
+
     void main(void) {
-    	//gl_Position = uFmatrix * uMRmatrix * vec4(position,1.0);  
+    	gl_Position = uFmatrix * uMRmatrix * vec4(position,1.0);  
         //gl_Position = vec4(position,1.0) * MVmatrix * Fmatrix
         //gl_Position = vec4(position,1.0) * MVmatrix;  //MORE DEBUG
-    	gl_Position = vec4(position, 1.0);  //#DEBUG CODE - REMOVe
+    	//gl_Position = vec4(position, 1.0);  //#DEBUG CODE - REMOVe
     }
 </script>
 
@@ -67,11 +74,11 @@ var shaderProgram = null; //Shader
 var Fmatrix = mat4.create();
 var MRmatrix = mat4.create();
 //
-var camLoc = vec3.fromValues(0,0,0);
+var camLoc = vec3.fromValues(-3, -3, -3)
 //
-var camRX = 0;
-var camRY = 0;
-var camRZ = 0;
+var camRX = 5;
+var camRY = 5;
+var camRZ = 5;
 //
 var positionlocation;
 
@@ -83,6 +90,8 @@ function matrix_update() {
 	mat4.rotateX(MRmatrix,MRmatrix,camRX);
 	mat4.rotateY(MRmatrix,MRmatrix,camRY);
 	mat4.rotateZ(MRmatrix,MRmatrix,camRZ);
+    //
+    mat4.translate(MRmatrix,MRmatrix,camLoc);
     //
     Fmatrix = mat4.create();
     mat4.perspective(Fmatrix,80,gl.viewportWidth / gl.viewportHeight,0.1,100);
@@ -182,6 +191,10 @@ function init_draw() { //RESET CURRENT BUFFER FOR REUSE
 function addToBuffer(array,size) { //pass Float32Array
     draw_buffer.numItems += size;
     gl.bufferData(gl.ARRAY_BUFFER,array, gl.STATIC_DRAW);
+}
+
+function addToBufferA(array,size) {
+    addToBuffer(new Float32Array(array),size);
 }
 
 function draw() {
@@ -295,7 +308,7 @@ var debug = 0;
 
 function renderLoop() {
 	init_draw();
-
+    /**
 	var vertices = [
          0.0,  1.0,  0.0,
         -1.0, -1.0,  0.0,
@@ -325,11 +338,68 @@ function renderLoop() {
     }else {
         addToBuffer(new Float32Array(vertices),3);
     }
+    **/
+    cube = [
+            // Front face
+            -1.0, -1.0,  1.0,
+             1.0, -1.0,  1.0,
+             1.0,  1.0,  1.0,
+             1.0, -1.0,  1.0,
+             1.0,  1.0,  1.0,
+            -1.0,  1.0,  1.0,
+
+            // Back face
+            -1.0, -1.0, -1.0,
+            -1.0,  1.0, -1.0,
+             1.0,  1.0, -1.0,
+            -1.0,  1.0, -1.0,
+             1.0,  1.0, -1.0,
+             1.0, -1.0, -1.0,
+
+            // Top face
+            -1.0,  1.0, -1.0,
+            -1.0,  1.0,  1.0,
+             1.0,  1.0,  1.0,
+            -1.0,  1.0,  1.0,
+             1.0,  1.0,  1.0,
+             1.0,  1.0, -1.0,
+
+            // Bottom face
+            -1.0, -1.0, -1.0,
+             1.0, -1.0, -1.0,
+             1.0, -1.0,  1.0,
+             1.0, -1.0, -1.0,
+             1.0, -1.0,  1.0,
+            -1.0, -1.0,  1.0,
+
+            // Right face
+             1.0, -1.0, -1.0,
+             1.0,  1.0, -1.0,
+             1.0,  1.0,  1.0,
+             1.0,  1.0, -1.0,
+             1.0,  1.0,  1.0,
+             1.0, -1.0,  1.0,
+
+            // Left face
+            -1.0, -1.0, -1.0,
+            -1.0, -1.0,  1.0,
+            -1.0,  1.0,  1.0,
+            -1.0, -1.0,  1.0,
+            -1.0,  1.0,  1.0,
+            -1.0,  1.0, -1.0
+        ];
+
+    addToBufferA(cube,36);
+
+    camRZ = toRADS(debug);
+    //camRX = toRADS(debug);
+    camRY = toRADS(debug);
+    //vec3.add(camLoc,camLoc,vec3.fromValues(1,1,1));
 
 	draw();
     //
-    debug +=1;
-    if(debug > 3) { debug = 0;}
+    debug +=2;
+    if(debug > 359) { debug = 0;}
 
 }
 
@@ -337,7 +407,7 @@ function communicationLoop() {
 	//
 }
 
-setInterval(mainLoop,200);//200);
+setInterval(mainLoop,20);//200);
 //setInterval(mainLoop,100);
 
 

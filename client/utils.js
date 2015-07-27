@@ -38,3 +38,10 @@ function getShader(gl, id) {
 }
 //END
 
+
+//Helpers ()
+
+function toRADS(degree) {
+    return degree * Math.PI / 180;
+}
+

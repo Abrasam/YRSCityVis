@@ -15,14 +15,14 @@
 <script id="shader.vertex" type="x-shader/x-vertex">
     attribute vec3 position;
 
-    uniform mat4 Fmatrix;
-    uniform mat4 MVmatrix;
+    uniform mat4 uFmatrix;
+    uniform mat4 uMRmatrix;
 
     void main(void) {
-    	gl_Position = Fmatrix * MVmatrix * vec4(position,1.0);  
+    	//gl_Position = uFmatrix * uMRmatrix * vec4(position,1.0);  
         //gl_Position = vec4(position,1.0) * MVmatrix * Fmatrix
         //gl_Position = vec4(position,1.0) * MVmatrix;  //MORE DEBUG
-    	//gl_Position = vec4(position, 1.0);  //#DEBUG CODE - REMOVe
+    	gl_Position = vec4(position, 1.0);  //#DEBUG CODE - REMOVe
     }
 </script>
 
@@ -87,12 +87,23 @@ function matrix_update() {
     Fmatrix = mat4.create();
     mat4.perspective(Fmatrix,80,gl.viewportWidth / gl.viewportHeight,0.1,100);
     //
-    mat4.identity(Fmatrix);
-    mat4.identity(MRmatrix);
-    alert(mat4.str(MRmatrix));
+    //mat4.identity(Fmatrix);
+    //mat4.identity(MRmatrix);
+    //alert(mat4.str(Fmatrix));
+
+    //DEBUG BECAUSE
+    //test_in = vec3.fromValues(1,-1,0);
+    //test_out = vec3.fromValues(0,0,0);
+    //test_data = mat4.create();
+    //mat4.multiply(test_data,MRmatrix,Fmatrix);
+    //vec3.transformMat4(test_out,test_in,test_data);
+   //mat4.multiply(test_data,Fmatrix,MRmatrix);
+    //alert("LOC= " + vec3.str(test_out));
+
 	//
-    gl.uniformMatrix4fv(shaderProgram.Fmatrix, false, Fmatrix);
-    gl.uniformMatrix4fv(shaderProgram.MRmatrix, false, MRmatrix);
+    //alert("DATA-MAT4: " + " mr="+mat4.str(MRmatrix)+ ", f="+mat4.str(Fmatrix));
+    gl.uniformMatrix4fv(shaderProgram.fMatrixUniform, gl.FALSE, Fmatrix);
+    gl.uniformMatrix4fv(shaderProgram.mrMatrixUniform, gl.FALSE, MRmatrix);
 }
 
 function addToBuffer(array,size) { //pass Float32Array
@@ -132,8 +143,8 @@ function initShaders() {
     shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "position");
     gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
 
-    shaderProgram.fMatrixUniform = gl.getUniformLocation(shaderProgram, "uFMatrix");
-    shaderProgram.mrMatrixUniform = gl.getUniformLocation(shaderProgram, "uMRMatrix");
+    shaderProgram.fMatrixUniform = gl.getUniformLocation(shaderProgram, "uFmatrix");
+    shaderProgram.mrMatrixUniform = gl.getUniformLocation(shaderProgram, "uMRmatrix");
 }
 
 function loadWebGL() {
@@ -165,7 +176,7 @@ function initBuffers() {
 function init_draw() { //RESET CURRENT BUFFER FOR REUSE
     draw_buffer.numItems = 0;
     gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
 
 function addToBuffer(array,size) { //pass Float32Array
@@ -174,12 +185,10 @@ function addToBuffer(array,size) { //pass Float32Array
 }
 
 function draw() {
-    
+    //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); //TEST PROB NEEDED
     switchBuffers();
     bindBuffer();   
     matrix_update();
-    //Cleanup
-    //draw_buffer_alt.numItems = 0;  //CHANGE
     //
     gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);//shaderProgram.vertexPositionAttribute, draw_buffer.itemSize, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLES, 0, draw_buffer.numItems);
@@ -269,7 +278,6 @@ function draw() {
 <script>
 //Non function script section
 
-//loadGL();
 
 
 //Main DATA storage
@@ -329,11 +337,11 @@ function communicationLoop() {
 	//
 }
 
-setInterval(mainLoop,500);//200);
+setInterval(mainLoop,200);//200);
+//setInterval(mainLoop,100);
 
 
-
-
+//Initial Loading
 loadWebGL();
 
 </script>

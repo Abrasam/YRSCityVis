@@ -16,7 +16,8 @@
     uniform mat4 MVmatrix;
 
     void main(void) {
-    	gl_Position = Fmatrix * MVmatrix * vec4(position,1.0);
+    	//gl_Position = Fmatrix * MVmatrix * vec4(position,1.0);  
+    	gl_Position = vec4(position,1.0);  //#DEBUG CODE - REMOVe
     }
 </script>
 
@@ -42,12 +43,17 @@ var camRX = 0;
 var camRY = 0;
 var camRZ = 0;
 //
+var positionlocation;
 
 function loadGL() {
     var canvas = document.getElementById("map");
     initGL(canvas);
-    initBuffers();
     initShaders();
+    initBuffers();
+    //
+    gl.enableVertexAttribArray(positionlocation);
+    gl.vertexAttribPointer(positionlocation, buffer.itemSize, gl.FLOAT, false, 0, 0);
+    //
 
     gl.clearColor(0.1, 0.1, 0.1, 1.0);
     //
@@ -58,80 +64,13 @@ function loadGL() {
     Fmatrix = mat4.create();
     mat4.perspective(Fmatrix,80,16/9,10,100);
     //
+    gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+
 
   }
 
-function initBuffers() {
-	buffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-}
 
 
-function initShaders() { //Basic shader init code,thanks
-	var fragmentShader = getShader(gl, "shader.fragment");
-    var vertexShader = getShader(gl, "shader.vertex");
-/////////
-	shaderProgram = gl.createProgram();
-	if(shaderProgram == null) {
-		alert("no shader program");
-	}
-	if(vertexShader == null) {
-		alert("no vertex shader");
-	}
-	if(fragmentShader == null) {
-		alert("no fragment shader");
-	}
-    gl.attachShader(shaderProgram, vertexShader);
-    gl.attachShader(shaderProgram, fragmentShader);
-    gl.linkProgram(shaderProgram);
-
-
-    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-            alert("Could not initialise shaders");
-        }
-
-    gl.useProgram(shaderProgram);
-
-    shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
-    //gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);  //Broke?
-
-    shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
-    shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
-
-}
-
-function draw() {
-	gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    //
-    buffer.itemSize = 3;
-    //
-    gl.drawArrays(gl.TRIANGLES, 0, buffer.numItems);
-}
-
-function addVert(x,y,z) {
-
-}
-
-
-function matrix_setup() {
-	//Camera update
-	MRmatrix = mat4.create();
-	//
-	mat4.translate(MRmatrix,MRmatrix,camLoc);
-	mat4.rotateX(MRmatrix,MRmatrix,camRX);
-	mat4.rotateY(MRmatrix,MRmatrix,camRY);
-	mat4.rotateZ(MRmatrix,MRmatrix,camRZ);
-	//
-
-	//
-    gl.uniformMatrix4fv(shaderProgram.Fmatrix, false, Fmatrix);
-    gl.uniformMatrix4fv(shaderProgram.MRmatrix, false, MRmatrix);
-}
-
-////
-
-//Util script - thanks to webGLlesson
 function getShader(gl, id) {
     var shaderScript = document.getElementById(id);
     if (!shaderScript) {
@@ -167,6 +106,93 @@ function getShader(gl, id) {
 
     return shader;
 }
+
+function initShaders() { //Basic shader init code,thanks
+	var fragmentShader = getShader(gl, "shader.fragment");
+    var vertexShader = getShader(gl, "shader.vertex");
+/////////
+	shaderProgram = gl.createProgram();
+	if(shaderProgram == null) {
+		alert("no shader program");
+	}
+	if(vertexShader == null) {
+		alert("no vertex shader");
+	}
+	if(fragmentShader == null) {
+		alert("no fragment shader");
+	}
+    gl.attachShader(shaderProgram, vertexShader);
+    gl.attachShader(shaderProgram, fragmentShader);
+    gl.linkProgram(shaderProgram);
+
+
+    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+            alert("Could not initialise shaders");
+        }
+
+    gl.useProgram(shaderProgram);
+
+    positionlocation = gl.getAttribLocation(shaderProgram, "position");
+    shaderProgram.vertexPositionAttribute = positionlocation;//"aVertexPosition");
+    //gl.enable
+
+    shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+    shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+
+}
+
+function initBuffers() {
+	buffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+	buffer.numItems = 3;
+	buffer.itemSize = 3;
+}
+
+function matrix_setup() {
+	//Camera update
+	MRmatrix = mat4.create();
+	//
+	mat4.translate(MRmatrix,MRmatrix,camLoc);
+	mat4.rotateX(MRmatrix,MRmatrix,camRX);
+	mat4.rotateY(MRmatrix,MRmatrix,camRY);
+	mat4.rotateZ(MRmatrix,MRmatrix,camRZ);
+	//
+
+	//
+    gl.uniformMatrix4fv(shaderProgram.Fmatrix, false, Fmatrix);
+    gl.uniformMatrix4fv(shaderProgram.MRmatrix, false, MRmatrix);
+}
+
+function init_draw() {
+	
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    matrix_setup();
+}
+
+function draw() {
+    //
+    buffer.itemSize = 3;
+    //gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+    //gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+
+    //
+    //alert(buffer.numItems);
+    gl.drawArrays(gl.TRIANGLES,0,buffer.numItems);
+    //gl.drawArrays(gl.TRIANGLES, 0, buffer.numItems);
+}
+
+function addToBuffer(array,size) { //pass Float32Array
+	buffer.numItems += size;
+	gl.bufferData(gl.ARRAY_BUFFER,array, gl.STATIC_DRAW);
+}
+
+
+
+
+////
+
+//Util script - thanks to webGLlesson
+
 //END
 
 
@@ -177,7 +203,7 @@ function initGL(canvas) {
         gl = canvas.getContext("experimental-webgl");
         gl.viewportWidth = canvas.width;
         gl.viewportHeight = canvas.height;
-        alert("DEBUG: LOADED");
+        //alert("DEBUG: LOADED");
     } catch (e) {
     	//DEBUG
     }
@@ -213,12 +239,18 @@ function initGL(canvas) {
 
 *{
 	position: inherit;
-	margin: 0px;
-	position: 0px;
+	margin-left: 0px;
+	margin-right: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;	
+	left: 0px;
+	top: 0px;
+	bottom: 0px;
+	right: 0px;
 }
 
 #body {
-	background-color="#FFFFDD"
+	background-color: "#FFFFDD";
 	left: 0%;
 	top: 0%;
 	height: 100%;
@@ -228,18 +260,20 @@ function initGL(canvas) {
 
 #frame_map {
 	position: inherit;
-	margin-left: 5%;
-	margin-top: 5%;
 	height: 90%;
 	width: 90%;
 	background-color: black;
-}
-
-#map {
+	margin-left: 2%;
+	margin-right: 0px;
+	margin-top: 2%;
+	margin-bottom: 0px;	
 	left: 0px;
 	top: 0px;
 	bottom: 0px;
 	right: 0px;
+}
+
+#map {
 	margin-left: 0px;
 	margin-right: 0px;
 	margin-top: 0px;
@@ -271,16 +305,15 @@ function mainLoop() {
 
 
 function renderLoop() {
-	matrix_setup(); //Alter matrix to account for camera calls
-	//Render pushes
+	init_draw();
+
 	var vertices = [
-             0.0,  1.0,  0.0,
-            -1.0, -1.0,  0.0,
-             1.0, -1.0,  0.0
+             0.3, 0.5,  0.0,
+             0.0, 0.0,  0.0,
+             0.5, 0.5,  0.0
         ];
 
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-    buffer.numItems = 3;
+    addToBuffer(new Float32Array(vertices));
 
 	draw();
 }
@@ -289,7 +322,7 @@ function communicationLoop() {
 	//
 }
 
-setInterval(mainLoop,2000);//200);
+setInterval(mainLoop,200);//200);
 
 
 

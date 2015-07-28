@@ -62,7 +62,7 @@ public class BoroughGen {
 			String str = "";
 			for (int z = 0; z < 500; z++) {
 				map[x][z] = getBorough(z, x);
-				str += (map[x][z]==0 ? "##" : (map[x][z] + (map[x][z] < 10 ? " " : "")));
+				str += (map[x][z]==0 ? "  " : (map[x][z] + (map[x][z] < 10 ? " " : "")));
 			}
 			str += System.lineSeparator();
 			if (writer != null) {

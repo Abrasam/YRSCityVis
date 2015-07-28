@@ -3,6 +3,9 @@ package com.github.jakesully123456.Main;
 import java.util.HashMap;
 
 import com.github.jakesully123456.Generation.BoroughGen;
+import com.github.jakesully123456.Generation.CrimeGen;
+import com.github.jakesully123456.Generation.FireGen;
+import com.github.jakesully123456.Generation.WardGen;
 import com.github.jakesully123456.Transfer.Parser;
 
 public class CityVisServer {
@@ -13,6 +16,14 @@ public class CityVisServer {
 	public static void main(String[] args) {
 		layers();
 		Parser.parseArray(layers.get("boroughs").getData());
+		WardGen wards = new WardGen();
+		wards.print();
+		CrimeGen crimes = new CrimeGen();
+		System.out.println(crimes.crimes.keySet().toString());
+		FireGen fires = new FireGen(gen);
+		System.out.println(wards.wards().size());
+		System.out.println(crimes.crimes.keySet().size());
+		System.out.println(fires.fires.keySet().size());
 	}
 	
 	private static void layers() {

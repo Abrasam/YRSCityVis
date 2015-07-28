@@ -107,8 +107,8 @@
 
 
 
-	camera.position.x = -10;
-	camera.position.y = -10;
+	camera.position.x = 0;
+	camera.position.y = 0;
 	camera.position.z = 40; 
 	camera.rotation.y = toRADS(2);//-(Math.PI / 2);
 	camera.rotation.z = toRADS(0);
@@ -246,15 +246,93 @@
 
     //TODO scaling zoom functionality  \/
 
-    var old_zoom = -12345;
-    function map_update() {
+    
+    //Movement map reset callback
 
+    //Variables => Subject to refinement :D
+
+    var xMax_r = 30;    //Reset values for scale 15
+    var xMin_r = -30;
+    var yMax_r = 30;    //Scaled using values from the plane.scale data
+    var yMin_r = -30;
+
+    //The hard part ==> Resetting to correct coords
+    var map_lal_scale = 2220 / 1680  //Coordinate differential => (based of earlier testing with zoom L14) + 400x400 area  (lat / long)
+    //                                      // THIS * LONG = LAT
+    var grid_scale = 1;
+
+
+    function map_update() {
+        var scale = plane_map_mesh.scale.x;
+        var x = camera.position.x;
+        var y = camera.position.y;
+        var zoom_scale = 1;//zoom_level;  //REWORK WITH LATER DATA
+        if((x*scale) > xMax_r) {
+            //DO COORDINATE REMAPPING
+            alert("cake");
+            new_image_center(x,y,scale,zoom_scale);
+        }
+        ///
+        if((x*scale) < xMin_r) {
+            //DO COORDINATE REMAPPING
+
+            new_image_center(x,y,scale,zoom_scale);
+        }
+        ////////
+        ////////
+        if((y*scale) > yMax_r) {
+            //DO COORDINATE REMAPPING
+
+            new_image_center(x,y,scale,zoom_scale);
+        }
+        ///
+        if((y*scale) < yMin_r) {
+            //DO COORDINATE REMAPPING
+
+            new_image_center(x,y,scale,zoom_scale);
+        }
     }
 
-    function zoom_update() {
-        if(old_zoom == zoom_level) { //Change - DO SOMETHING
+    function new_image_center(x,y,scale,zoom) { //UTIL TO GAIN NEW CENTER ON REMAP  //SUBJECT TO IMPROVEMENTS
+        alert("THE CAKE _ IT IS A LIE!!");
+        //STUFF
+        CURR_X += (x * scale * zoom * grid_scale);
+        alert(y);
+        CURR_Y += (y * scale * zoom * grid_scale)  * map_lal_scale;  // was * => Change???
+        alert((y* scale * zoom * grid_scale));
+        //
+        request_new_images();
+        camera.position.x = 0;
+        camera.position.y = 0;
+    }
+
+    function request_new_images() {
+        //return; //     #NADA
+            alert("NEW IMAGE DATA");
+            var x = CURR_X;
+            var y = CURR_Y;
+            plane_map_z1 = THREE.ImageUtils.loadTexture(map_large(x,y,11,maptype));
+            plane_map_z2 = THREE.ImageUtils.loadTexture(map_large(x,y,15,maptype));
+            plane_map_z3 = THREE.ImageUtils.loadTexture(map_large(x,y,17,maptype));
 
 
+            plane_map_mat1 = new THREE.MeshBasicMaterial({map: plane_map_z1});
+            plane_map_mat2 = new THREE.MeshBasicMaterial({map: plane_map_z2});
+            plane_map_mat3 = new THREE.MeshBasicMaterial({map: plane_map_z3});
+            //TODO ADD SMART CODE THAT REBINDS THE CORRECT ZOOM LEVEL
+
+            //DEBUG QUICK CODE
+            plane_map_mesh.material = plane_map_mat2;
+    }
+
+    var zoom_level = 75;
+    var old_zoom = -12345;
+    function zoom_update() {  //60 => 120 (scale / 75) scale values per location
+        if(old_zoom != zoom_level) { //Change - DO SOMETHING
+
+            //Lazy Test Zoom without image switching
+            var dat = (zoom_level / 75);
+            plane_map_mesh.scale.set(dat,dat,dat);
 
 
             old_zoom = zoom_level;
@@ -267,6 +345,8 @@
 		requestAnimationFrame( render );
 
         zoom_update();
+       
+        map_update();
 
 		renderer.render(scene, camera);
 	};
@@ -280,30 +360,30 @@ function inputLoop() {
     if(wheel_delta == 1) {
         wheel_delta = 0;
         //DO STUFF
-        zoom_level++;
-        if(zoom_level > 100) {zoom_level = 100}
+        zoom_level+= 2;
+        if(zoom_level > 200) {zoom_level = 200}
     }
     if(wheel_delta == -1) {
         wheel_delta = 0;
         //DO STUFF
-        zoom_level--;
+        zoom_level-= 2;
         if(zoom_level < 0) {zoom_level = 0;}
     }
     //MOVEMENT STUFF - HANDLE MOVEMENT AND IMAGE RESET CALLS
     if(keys[87]) { //W
-        camera.position.y += 0.2;
+        camera.position.y += 0.3;
     }
     //
     if(keys[65]) { //A
-        camera.position.x -= 0.2;
+        camera.position.x -= 0.3;
     }
     //
     if(keys[83]) { //S
-        camera.position.y -= 0.2;
+        camera.position.y -= 0.3;
     }
     //
     if(keys[68]) { //D
-        camera.position.x += 0.2;
+        camera.position.x += 0.3;
     }
 
 
@@ -314,7 +394,7 @@ var wheel_delta = 0;
 function wheel_mouse(e) {
     wheel_delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
 }
-window.addEventListener("mousewheel", wheel_mouse   , false); //TODO
+window.addEventListener("mousewheel", wheel_mouse, false); //TODO
 
 var keys = [];
 

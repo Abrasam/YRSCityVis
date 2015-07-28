@@ -34,10 +34,10 @@
     //Render option
     var CURR_X = latTOgr(51.513615);
     var CURR_Y = longTOgr(-0.114134);
-    alert(CURR_X);
-    alert(CURR_Y);
+    //alert(CURR_X);
+    //alert(CURR_Y);
     //
-    var zoom = 50; //1 - 100, with 101 being underground
+    var zoom_level = 100; //1 - 100, with 101 being underground
     //Requests use zoom levels - 12,14 and 17 with scaling used for the inbetweens
 
 </script>
@@ -59,16 +59,20 @@
     	return degree * Math.PI / 180;
 	}
 
-    function map(lat,longi,zoom,type,width,height) { //DO 17,14,12 based on zoom
-        return "https://maps.googleapis.com/maps/api/staticmap?center="+lat+","+longi+"&zoom="+zoom+"&size="+width+"x"+height+"&maptype="+type;
+    function map(lat,longi,zoom,type,width,height,scale) { //DO 17,14,12 based on zoom
+        return "https://maps.googleapis.com/maps/api/staticmap?center="+lat+","+longi+"&zoom="+zoom+"&size="+width+"x"+height+"&maptype="+type+"&scale="+scale;
     }
 
     function map_grid(lat,longi,zoom,type) {
-        return map(lat,longi,zoom,type,400,400);
+        return map(lat,longi,zoom,type,400,400,1);
     }
 
     function map_scale(x,y,zoom,type) {  // zoom = 17,14,12
         return map_grid(grTOlat(x),grTOlong(y),zoom,type);
+    }
+
+    function map_large(x,y,zoom,type) {  // NEW ZOOMS = 17,15,11
+        return map(grTOlat(x),grTOlong(y),zoom,type,640,640,2);
     }
 
 
@@ -94,6 +98,7 @@
 
 	scene.add(plane_mesh1);
     scene.add(plane_mesh2);
+    //Final tweaks for underground-background-dirt
 	plane_mesh1.position.y = -5;
     plane_mesh2.position.y = -5//-10;
     plane_mesh1.position.x = -75//-55//-50;
@@ -117,14 +122,18 @@
     ///Zoom distance values
     var de_l= 2220;  //YES CORRECT FOR 14 2220 :D :D :D
     var de_lo = 1680;   //NB LAT IS Y AND LONG IS X
+
+    var sc_laOlo = 2220 / 1680; //Ratio from values determined from size 14 at 400x400
+
     var maptype = "roadmap";
     var def_lat = 2500; //TESTED AT 2500,2500
     var def_long = 3000;
 
 
-
-
     //Grid planes -> simple updates handles in render function
+
+
+    /**     TESTED - Principle idea option  => Going for better rewrite but keeping data
 
     var plane_map_geo = new THREE.PlaneGeometry(40, 40);
 
@@ -210,21 +219,54 @@
     scene.add(plane_map_m11);
     scene.add(plane_map_m12);
     
+    **/
+
+    //New better approach
+
+    //Max pixel retrievable is 640x640 at SCALE of 2
+
+    //New Large Map with auto-loaded smart zoom stuff
+
+    var plane_map_geo = new THREE.PlaneGeometry(160,160); //Can handle zooms up to 3x => more than enough
+    // 3x zoom level data load //movement to point where reset + request
+    var plane_map_z1 = THREE.ImageUtils.loadTexture(map_large(CURR_X,CURR_Y,11,maptype));
+    var plane_map_z2 = THREE.ImageUtils.loadTexture(map_large(CURR_X,CURR_Y,15,maptype));
+    var plane_map_z3 = THREE.ImageUtils.loadTexture(map_large(CURR_X,CURR_Y,17,maptype));
+
+    var plane_map_mat1 = new THREE.MeshBasicMaterial({map: plane_map_z1});
+    var plane_map_mat2 = new THREE.MeshBasicMaterial({map: plane_map_z2});
+    var plane_map_mat3 = new THREE.MeshBasicMaterial({map: plane_map_z3});
+
+    var plane_map_mesh = new THREE.Mesh(plane_map_geo, plane_map_mat2);
+
+    plane_map_mesh.position.set(-10,-10,5);//(-75,-50,5)
+
+    scene.add(plane_map_mesh)
 
 
     //TODO scaling zoom functionality  \/
-    function scale_zoom() {
 
-    }
-
+    var old_zoom = -12345;
     function map_update() {
 
     }
 
+    function zoom_update() {
+        if(old_zoom == zoom_level) { //Change - DO SOMETHING
+
+
+
+
+            old_zoom = zoom_level;
+        }else {
+            //   #NADA
+        }
+    }
 
 	var render = function () {
 		requestAnimationFrame( render );
 
+        zoom_update();
 
 		renderer.render(scene, camera);
 	};
@@ -234,13 +276,49 @@
 
 <script>
 function inputLoop() {
+    //alert(wheel_delta);
+    if(wheel_delta == 1) {
+        wheel_delta = 0;
+        //DO STUFF
+        zoom_level++;
+        if(zoom_level > 100) {zoom_level = 100}
+    }
+    if(wheel_delta == -1) {
+        wheel_delta = 0;
+        //DO STUFF
+        zoom_level--;
+        if(zoom_level < 0) {zoom_level = 0;}
+    }
+    //MOVEMENT STUFF - HANDLE MOVEMENT AND IMAGE RESET CALLS
+    if(keys[87]) { //W
+        camera.position.y += 0.2;
+    }
+    //
+    if(keys[65]) { //A
+        camera.position.x -= 0.2;
+    }
+    //
+    if(keys[83]) { //S
+        camera.position.y -= 0.2;
+    }
+    //
+    if(keys[68]) { //D
+        camera.position.x += 0.2;
+    }
 
 
 }
 
+var wheel_delta = 0;
+
+function wheel_mouse(e) {
+    wheel_delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
+}
+window.addEventListener("mousewheel", wheel_mouse   , false); //TODO
+
 var keys = [];
 
-setInterval(inputLoop,200);
+setInterval(inputLoop,34);
 
 
 window.addEventListener("keydown", key_down, false);

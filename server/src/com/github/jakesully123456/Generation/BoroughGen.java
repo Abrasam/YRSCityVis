@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -51,12 +52,31 @@ public class BoroughGen {
 	}
 
 	private void readImage() {
+		FileWriter writer = null;
+		try {
+			writer = new FileWriter(new File("boroughs.txt"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		for (int x = 0; x < 500; x++) {
+			String str = "";
 			for (int z = 0; z < 500; z++) {
 				map[x][z] = getBorough(z, x);
-				System.out.print(map[x][z] + (map[x][z] < 10 ? " " : ""));
+				str += (map[x][z]==0 ? "##" : (map[x][z] + (map[x][z] < 10 ? " " : "")));
 			}
-			System.out.println("");
+			str += System.lineSeparator();
+			if (writer != null) {
+				try {
+					writer.write(str);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		try {
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -70,9 +90,9 @@ public class BoroughGen {
 		}*/
 		int red = col.getRed();
 		/*int red2 = col2.getRed();*/
-		if (red > 0 && red < 34 && col.getGreen() == 0 && col.getBlue() == 0) {
+		if (red > 0 && red < 34/* && col.getGreen() == 0 && col.getBlue() == 0*/) {
 			return red;
-		/*} else if (red2 > 0 && red2 < 34 && col2.getGreen() == 0 && col2.getBlue() == 0) {
+			/*} else if (red2 > 0 && red2 < 34 && col2.getGreen() == 0 && col2.getBlue() == 0) {
 			return red2;*/
 		} else {
 			return 0;

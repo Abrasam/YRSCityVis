@@ -7,29 +7,29 @@
 <script id="shader.fragment" type="x-shader/x-fragment">
     precision mediump float;
 
+    varying vec2 vTextureCoords;
+
+    uniform sampler2D uSampler;
 
     void main(void) {
-        gl_FragColor = vec4(1.0, 0.0, 1.0, 0.5);
-        //gl_FragColor = vColor;
+        //gl_FragColor = vec4(1.0, 0.0, 1.0, 0.5);
+        gl_FragColor = texture2D(uSampler, vec2(vTextureCoords.s , vTextureCoords.t));
     }
 </script>
 
 <script id="shader.vertex" type="x-shader/x-vertex">
     attribute vec3 position;
-    //attribute vec4 basic_color;
+    attribute vec2 textures;
 
     uniform mat4 uFmatrix;
     uniform mat4 uMRmatrix;
 
 
-    varying vec3 v;
-    varying vec3 c;
+    varying vec2 vTextureCoords; 
 
     void main(void) {
     	gl_Position = uFmatrix * uMRmatrix * vec4(position,1.0);  
-        //gl_Position = vec4(position,1.0) * MVmatrix * Fmatrix
-        //gl_Position = vec4(position,1.0) * MVmatrix;  //MORE DEBUG
-    	//gl_Position = vec4(position, 1.0);  //#DEBUG CODE - REMOVe
+        vTextureCoords = textures;
     }
 </script>
 
@@ -51,24 +51,8 @@ var pers_scale = 2;
 
 ///////
 
-function onResize() {
-    return null; //  #NADA
-    //var h = document.height;
-    //var w = document.width;
-    //alert(h);
-    canvas = document.getElementById("map");
-
-    var ch = canvas.height 
-    var cw = canvas.width 
-
-    //canvas.style.height = h * 0.9;
-    //canvas.style.width = h * 0.9;
-
-    gl.viewport(-cw*pers_scale,-ch*pers_scale,cw*pers_scale,ch*pers_scale);               //HACK - KINDA WORKS BUT LIMITS DISPLAY RANGE???
-    //alert(gl.viewportWidth);                                                          // Could adding a scale matrix fix???
-    gl.viewportHeight = ch*pers_scale;
-    gl.viewportWidth = cw * pers_scale;
-    alert(gl.viewportWidth);
+function onResize() { //   #NADA
+    
 }
 
 
@@ -85,17 +69,7 @@ function initGL(canvas) {
     if (!gl) {
         alert("ERROR: Failed to initialise WebGL");
     }
-    /// Sneakyness
-
-    //canvas.style.width = "100%";
-   // canvas.style.height = "100%";
-
-    var fmap = document.getElementById("frame_map");
-   // fmap.style.width = "90%";
-   // fmap.style.height = "90%";
-
-
-    onResize();
+  
 }
 
 //WebGL Access functionality
@@ -103,8 +77,12 @@ var gl = null;
 /////
 var draw_buffer = null; //Vertex Buffer to push
 var draw_buffer_alt = null;
-var draw_buffer_a = null;
-var draw_buffer_b = null;
+///
+var tex_buffer = null;
+var tex_buffer_alt = null;
+
+var final_buffer = null;
+
 
 /////
 var shaderProgram = null; //Shader
@@ -112,11 +90,12 @@ var shaderProgram = null; //Shader
 var Fmatrix = mat4.create();
 var MRmatrix = mat4.create();
 //
-var camLoc = vec3.fromValues(-3, -3, -3)
+//var camLoc = vec3.fromValues(0, 10, 0)
+var camLoc = vec3.fromValues(0,50,0);   //DEBUG LOCATION
 //
-var camRX = 5;
-var camRY = 5;
-var camRZ = 5;
+var camRX = toRADS(90); //PICTH
+var camRY = toRADS(90); //YAW
+var camRZ = toRADS(90); //ROLL
 //
 var positionlocation;
 
@@ -124,27 +103,29 @@ function matrix_update() {
 	//Camera update
 	MRmatrix = mat4.create();
 	//
-	mat4.translate(MRmatrix,MRmatrix,camLoc);
-	mat4.rotateX(MRmatrix,MRmatrix,camRX);
-	mat4.rotateY(MRmatrix,MRmatrix,camRY);
-	mat4.rotateZ(MRmatrix,MRmatrix,camRZ);
+	//mat4.translate(MRmatrix,MRmatrix,camLoc);
+    //
+	//mat4.rotateX(MRmatrix,MRmatrix,camRX);
+	//mat4.rotateY(MRmatrix,MRmatrix,camRY);
+    //mat4.rotateZ(MRmatrix,MRmatrix,camRZ);
+    //mat4.rotateY(Fmatrix,Fmatrix,camRY);
+
+
+    mat4.rotate(MRmatrix,MRmatrix,camRX,[1,0,0]);
+    mat4.rotate(MRmatrix,MRmatrix,camRY,[0,1,0]);
+    //
+    mat4.rotate(MRmatrix,MRmatrix,camRZ,[0,0,1]);
+
     //
     mat4.translate(MRmatrix,MRmatrix,camLoc);
+
+	
+    //
+   // mat4.translate(MRmatrix,MRmatrix,camLoc);
     //
     Fmatrix = mat4.create();
-    //Experimental hack location 2
-    //var hack = vec3.fromValues(1/pers_scale, 1/pers_scale, 1/pers_scale);
-
-
-    //mat4.scale(Fmatrix,Fmatrix,hack);  ///HACKZ PART 2
 
     mat4.perspective(Fmatrix,80,gl.viewportWidth / gl.viewportHeight,0.1,100);
-
-    //Experimental added scale matrix
-    //var hack = vec3.fromValues(1/pers_scale, 1/pers_scale, 1/pers_scale);
-
-    //mat4.scale(Fmatrix,Fmatrix,hack);  ///HACKZ PART 2
-
 
 	//
     //alert("DATA-MAT4: " + " mr="+mat4.str(MRmatrix)+ ", f="+mat4.str(Fmatrix));
@@ -164,6 +145,11 @@ function switchBuffers() {
     temp = draw_buffer;
     draw_buffer = draw_buffer_alt;
     draw_buffer_alt = temp;
+    ////
+    temp = tex_buffer;
+    tex_buffer = tex_buffer_alt;
+    tex_buffer_alt = temp;
+
 }
 
 function bindBuffer() {
@@ -189,8 +175,12 @@ function initShaders() {
     shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "position");
     gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
 
+    shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "textures");
+    gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
+
     shaderProgram.fMatrixUniform = gl.getUniformLocation(shaderProgram, "uFmatrix");
     shaderProgram.mrMatrixUniform = gl.getUniformLocation(shaderProgram, "uMRmatrix");
+    shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
 }
 
 function loadWebGL() {
@@ -198,12 +188,11 @@ function loadWebGL() {
     initGL(canvas);
     initShaders();
     initBuffers();
+
+    initTexture();
     //////
     gl.clearColor(0.0, 0.0, 0.0, 1.0);              //****** ***///   DEBUG CLEAR COLOR TESTING
     gl.enable(gl.DEPTH_TEST);
-
-    // \/ TO TURN INTO DRAW CALLING REPEATABLE
-    //////draw();
 
 }
 
@@ -211,19 +200,57 @@ function loadWebGL() {
 function initBuffers() {
     draw_buffer = gl.createBuffer();
     draw_buffer_alt = gl.createBuffer();
+    tex_buffer = gl.createBuffer();
+    tex_buffer_alt = gl.createBuffer();
+    final_buffer = gl.createBuffer();
+
     gl.bindBuffer(gl.ARRAY_BUFFER, draw_buffer);
+    /////SETUP
+    tex_buffer.itemSize = 2;
+    tex_buffer.numItems = 0;
+    tex_buffer_alt.itemSize = 2;
+    tex_buffer_alt.numItems = 2;    
+
     ////////SETUP
     draw_buffer.itemSize = 3;
     draw_buffer.numItems = 0;
+    draw_buffer_alt.itemSize = 3;
+    draw_buffer_alt.numItems = 0;
     gl.bindBuffer(gl.ARRAY_BUFFER, draw_buffer);
 }
+
+var dirt_texture;
+function initTexture() {
+    dirt_texture = gl.createTexture();
+    dirt_texture.image = new Image();
+    dirt_texture.image.onload = function() {
+        handleLoadedTexture(dirt_texture)
+    }
+
+    dirt_texture.image.src = "data/dirt.gif";
+}
+
+function handleLoadedTexture(texture) {
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+  }
+
+
+
+function loadTexture() {
+
+}
+
+////////////////////////////////
 
 
 function init_draw() { //RESET CURRENT BUFFER FOR REUSE
     draw_buffer.numItems = 0;
     //gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);   ///INCLUDE???
-    //gl.viewport(0,0,1366,786);
-    //gl.viewport(0,0,)
     //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
 
@@ -236,14 +263,37 @@ function addToBufferA(array,size) {
     addToBuffer(new Float32Array(array),size);
 }
 
-function draw() {  //FIRST DRAW CALL PER FRAME
-    //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); //TEST PROB NEEDED   DEBUG TESTING
+function addToTextureBuffer(array,size) {
+    tex_buffer.numItems  += size;
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(array),  gl.STATIC_DRAW);
+}
+
+function draw_textureLoad() {
     switchBuffers();
     bindBuffer();   
     matrix_update();
-    //
-    gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);//shaderProgram.vertexPositionAttribute, draw_buffer.itemSize, gl.FLOAT, false, 0, 0);
-    gl.drawArrays(gl.TRIANGLES, 0, draw_buffer.numItems);
+    gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, draw_buffer.itemSize, gl.FLOAT, false, 0, 0);
+}
+
+function draw() {  //FIRST DRAW CALL PER FRAME
+    //Texture Stuff
+    gl.bindBuffer(gl.ARRAY_BUFFER,tex_buffer);
+    gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, tex_buffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, dirt_texture);
+    gl.uniform1i(shaderProgram.samplerUniform, 0);
+
+    /////
+    var stuff = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24];
+
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, final_buffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(stuff), gl.STATIC_DRAW);
+
+    ////
+    ////final_buffer = gl.createBuffer();  //Terrible - probable mem-leak
+    
+
+    gl.drawElements(gl.TRIANGLES, tex_buffer.numItems, gl.UNSIGNED_SHORT, 0);
 }
 
 
@@ -268,7 +318,7 @@ function draw_additional() {  //ADDITIONAL DRAW CALLS PER FRAME
 
 	<div id="frame_map" >
 
-		<canvas id="map" onResize="onResize();">
+		<canvas id="map" onResize="onResize();" width="1366" height="768">
 
 
 		</canvas>
@@ -370,128 +420,92 @@ function mainLoop() {
 	communicationLoop();
 }
 
-var debug = 0;
+var DEBUG = 0;
 
 function renderLoop() {
 	init_draw();
-    /**
-	var vertices = [
-         0.0,  1.0,  0.0,
-        -1.0, -1.0,  0.0,
-         1.0, -1.0,  0.0
+
+    var dirt = 
+        [-100, -100, -50,
+         -100,  100, -50,
+          100,  100, -50,
+         -100, -100, -50,
+          100,  100, -50,
+          100, -100, -50
     ];
 
-    var vertices_2 = [
-         0.0,  0.8,  0.0,
-        -1.0, -1.0,  0.0,
-         1.0, -1.0,  0.0
-    ];
+    addToBufferA(dirt,6);
 
+    draw_textureLoad();
 
-    var vertices_3 = [
-         0.0,  0.2,  0.0,
-        -1.0, -1.0,  0.0,
-         1.0, -1.0,  0.0
-    ];
+    var tex =
+        [0,0,0,1,1,1,0,0,1,1,1,0];
 
-    //alert("P");
-    if(debug == 1) {
-        addToBuffer(new Float32Array(vertices),3);
-    }else if(debug == 2) {
-        addToBuffer(new Float32Array(vertices_2),3);
-    }else if(debug == 3) {
-        addToBuffer(new Float32Array(vertices_3),3);
-    }else {
-        addToBuffer(new Float32Array(vertices),3);
-    }
-    **/
-    cube = [
-            // Front face
-            -1.0, -1.0,  1.0,
-             1.0, -1.0,  1.0,
-             1.0,  1.0,  1.0,
-             1.0, -1.0,  1.0,
-             1.0,  1.0,  1.0,
-            -1.0,  1.0,  1.0,
-
-            // Back face
-            -1.0, -1.0, -1.0,
-            -1.0,  1.0, -1.0,
-             1.0,  1.0, -1.0,
-            -1.0,  1.0, -1.0,
-             1.0,  1.0, -1.0,
-             1.0, -1.0, -1.0,
-
-            // Top face
-            -1.0,  1.0, -1.0,
-            -1.0,  1.0,  1.0,
-             1.0,  1.0,  1.0,
-            -1.0,  1.0,  1.0,
-             1.0,  1.0,  1.0,
-             1.0,  1.0, -1.0,
-
-            // Bottom face
-            -1.0, -1.0, -1.0,
-             1.0, -1.0, -1.0,
-             1.0, -1.0,  1.0,
-             1.0, -1.0, -1.0,
-             1.0, -1.0,  1.0,
-            -1.0, -1.0,  1.0,
-
-            // Right face
-             1.0, -1.0, -1.0,
-             1.0,  1.0, -1.0,
-             1.0,  1.0,  1.0,
-             1.0,  1.0, -1.0,
-             1.0,  1.0,  1.0,
-             1.0, -1.0,  1.0,
-
-            // Left face
-            -1.0, -1.0, -1.0,
-            -1.0, -1.0,  1.0,
-            -1.0,  1.0,  1.0,
-            -1.0, -1.0,  1.0,
-            -1.0,  1.0,  1.0,
-            -1.0,  1.0, -1.0
-        ];
-
-    addToBufferA(cube,36);
-
-    //camRZ = toRADS(debug);
-    camRX = toRADS(debug);
-    camRY = toRADS(debug);
-    //vec3.add(camLoc,camLoc,vec3.fromValues(1,1,1));
-
+    addToTextureBuffer(tex,6);
 	draw();
-    //
-    debug +=2;
-    if(debug > 359) { debug = 0;}
-
 }
 
 function communicationLoop() {
 	//
 }
 
+var RADone = toRADS(1);
+
 function inputLoop() {
 
     if(keys[87]) { //W
-
+        vec3.add(camLoc,camLoc,vec3.fromValues(0.1,0,0));
     }
     //
     if(keys[65]) { //A
-
+        vec3.add(camLoc,camLoc,vec3.fromValues(0,0,-0.1));
     }
     //
     if(keys[83]) { //S
-
+        vec3.add(camLoc,camLoc,vec3.fromValues(-0.1,0,0));
     }
     //
     if(keys[68]) { //D
+        vec3.add(camLoc,camLoc,vec3.fromValues(0,0,0.1));
+    }
+
+    //ROTATION
+    if(keys[81] ) { //Q
+        camRZ += RADone;  //ROLL
+        camRZ = (camRZ % (2*Math.PI));
+        
+        
+    }
+
+    if(keys[69]) { //E
+        camRZ -= RADone; //ROLL
+        camRZ = (camRZ % (2*Math.PI));
+        
+    }   
+    //
+    if(keys[73]) {//I
+        camRX += RADone; //UP ROTATE
+        camRX = (camRX % (2*Math.PI));  
+    }
+    
+
+    if(keys[75]) {//K
+        camRX -= RADone; //DOWN ROTATE
+        camRX = (camRX % (2*Math.PI));
+    }
+
+    if(keys[74]) {//J
+       camRY += RADone; //LEFT TURN ROTATE
+        camRY = (camRY % (2*Math.PI));
+    }
+
+    if(keys[76]) {//L
+        camRY -= RADone; //RIGHT  TURN ROTATE
+        camRY = (camRY % (2*Math.PI));
 
     }
 
-    //
+
 
 
     if(keys[27]) { //Esc
@@ -501,13 +515,6 @@ function inputLoop() {
 
 }
 
-//Handlers
-
-//var w_k = false;
-//var a_k = false;
-//var d_k = false;
-//var s_k = false;
-//var esc = false;
 var keys = [];
 
 

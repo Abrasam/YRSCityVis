@@ -16,17 +16,17 @@ public class BoroughGen {
 
 	private BufferedImage image;
 	private HashMap<Integer, String> boroughs;
-	public Integer[][] map;
+	public int[][] map;
 
 	public BoroughGen() {
 		boroughs = new HashMap<Integer, String>();
 		try {
-			image = ImageIO.read(new File("boroughs.jpg"));
+			image = ImageIO.read(new File("boroughs.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		fill();
-		map = new Integer[500][500];
+		map = new int[500][500];
 		readImage();
 	}
 

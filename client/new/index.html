@@ -1,0 +1,262 @@
+<script src="three.min.js"></script>
+
+<script>
+    
+    var data_ax_v = 51.723685;
+    var data_ay_v = 0.426118;
+    var data_bx_v = 51.238917;
+    var data_by_v = -0.59728;
+    ///
+    var data_xd_v = data_ax_v - data_bx_v;
+    var data_yd_v = data_ay_v - data_by_v;
+    //
+    var data_x_unit = data_xd_v / 50000;
+    var data_y_unit = data_yd_v / 50000;
+
+    function sixdp(v) {
+        return Math.round(v * 1000000) / 1000000;
+    }
+
+    function latTOgr(v) {
+        return sixdp((v - data_bx_v) / data_x_unit);
+    }
+    function longTOgr(v) {
+        return sixdp((v - data_by_v) / data_y_unit);
+    }
+    function grTOlat(v) {
+        return data_bx_v + ( sixdp(v) * data_x_unit);
+    }
+    function grTOlong(v) {
+        return data_by_v + ( sixdp(v) * data_y_unit);
+    }
+
+
+    //Render option
+    var CURR_X = latTOgr(51.513615);
+    var CURR_Y = longTOgr(-0.114134);
+    alert(CURR_X);
+    alert(CURR_Y);
+    //
+    var zoom = 50; //1 - 100, with 101 being underground
+    //Requests use zoom levels - 12,14 and 17 with scaling used for the inbetweens
+
+</script>
+
+
+
+<html>
+	<head>
+		<title>Map Data</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+</html>
+
+<script>   //NOTES Z IS UP
+	function toRADS(degree) {
+    	return degree * Math.PI / 180;
+	}
+
+    function map(lat,longi,zoom,type,width,height) { //DO 17,14,12 based on zoom
+        return "https://maps.googleapis.com/maps/api/staticmap?center="+lat+","+longi+"&zoom="+zoom+"&size="+width+"x"+height+"&maptype="+type;
+    }
+
+    function map_grid(lat,longi,zoom,type) {
+        return map(lat,longi,zoom,type,400,400);
+    }
+
+    function map_scale(x,y,zoom,type) {  // zoom = 17,14,12
+        return map_grid(grTOlat(x),grTOlong(y),zoom,type);
+    }
+
+
+	var scene = new THREE.Scene();
+	var camera = new THREE.PerspectiveCamera(85, window.innerWidth/window.innerHeight, 0.1, 1000 );
+	var pointLight = new THREE.PointLight(0xFFFFFF);
+	pointLight.position.x = 0;
+    pointLight.position.y = 500;
+    pointLight.position.z = 0;
+    scene.add(pointLight); 
+    ///
+    var plane_geometry = new THREE.PlaneGeometry(100, 100);
+   	var plane_texture = THREE.ImageUtils.loadTexture('/earth.jpg');
+    //var plaane = THREE.ImageUtils.loadTexture('http://www.google.co.uk/');                 //BROKE UNLESS ON SEVRER
+    var plane_material = new THREE.MeshBasicMaterial({map: plane_texture});
+
+    var plane_mesh1 = new THREE.Mesh(plane_geometry, plane_material);
+    var plane_mesh2 = new THREE.Mesh(plane_geometry, plane_material);
+
+	var renderer = new THREE.WebGLRenderer();
+	renderer.setSize( window.innerWidth, window.innerHeight );
+	document.body.appendChild( renderer.domElement );
+
+	scene.add(plane_mesh1);
+    scene.add(plane_mesh2);
+	plane_mesh1.position.y = -5;
+    plane_mesh2.position.y = -5//-10;
+    plane_mesh1.position.x = -75//-55//-50;
+    plane_mesh2.position.x = 25//45// 50;
+
+
+
+
+	camera.position.x = -10;
+	camera.position.y = -10;
+	camera.position.z = 40; 
+	camera.rotation.y = toRADS(2);//-(Math.PI / 2);
+	camera.rotation.z = toRADS(0);
+	camera.rotation.x = toRADS(2);
+
+    //Moving updating grid
+    //GRID DATA VALS
+    var mxo = -75; //Def_xOffset
+    var myo = -50; //Def_yOffset
+    //
+    ///Zoom distance values
+    var de_l= 2220;  //YES CORRECT FOR 14 2220 :D :D :D
+    var de_lo = 1680;   //NB LAT IS Y AND LONG IS X
+    var maptype = "roadmap";
+    var def_lat = 2500; //TESTED AT 2500,2500
+    var def_long = 3000;
+
+
+
+
+    //Grid planes -> simple updates handles in render function
+
+    var plane_map_geo = new THREE.PlaneGeometry(40, 40);
+
+    var plane_map_t1 = THREE.ImageUtils.loadTexture(map_scale(def_long,def_lat,14,maptype));
+    
+    var plane_map_t2 = THREE.ImageUtils.loadTexture(map_scale(def_long,def_lat+de_lo,14,maptype));
+    
+    var plane_map_t3 = THREE.ImageUtils.loadTexture(map_scale(def_long,def_lat+de_lo+de_lo,14,maptype));
+    
+    var plane_map_t4 = THREE.ImageUtils.loadTexture(map_scale(def_long,def_lat+de_lo+de_lo+de_lo,14,maptype));
+    
+    var plane_map_t5 = THREE.ImageUtils.loadTexture(map_scale(def_long+de_l,def_lat,14,maptype));
+    
+    var plane_map_t6 = THREE.ImageUtils.loadTexture(map_scale(def_long+de_l,def_lat+de_lo,14,maptype));
+    
+    var plane_map_t7 = THREE.ImageUtils.loadTexture(map_scale(def_long+de_l,def_lat+de_lo+de_lo,14,maptype));
+    
+    var plane_map_t8 = THREE.ImageUtils.loadTexture(map_scale(def_long+de_l,def_lat+de_lo+de_lo+de_lo,14,maptype));
+    
+    var plane_map_t9 = THREE.ImageUtils.loadTexture(map_scale(def_long+de_l+de_l,def_lat,14,maptype));
+    
+    var plane_map_t10 = THREE.ImageUtils.loadTexture(map_scale(def_long+de_l+de_l,def_lat+de_lo,14,maptype));
+    
+    var plane_map_t11 = THREE.ImageUtils.loadTexture(map_scale(def_long+de_l+de_l,def_lat+de_lo+de_lo,14,maptype));
+    
+    var plane_map_t12 = THREE.ImageUtils.loadTexture(map_scale(def_long+de_l+de_l,def_lat,2500+de_lo+de_lo+de_lo,14,maptype));
+
+    var plane_map_mat1 = new THREE.MeshBasicMaterial({map: plane_map_t1});
+    var plane_map_mat2 = new THREE.MeshBasicMaterial({map: plane_map_t2});
+    var plane_map_mat3 = new THREE.MeshBasicMaterial({map: plane_map_t3});
+    var plane_map_mat4 = new THREE.MeshBasicMaterial({map: plane_map_t4});
+    var plane_map_mat5 = new THREE.MeshBasicMaterial({map: plane_map_t5});
+    var plane_map_mat6 = new THREE.MeshBasicMaterial({map: plane_map_t6});
+    var plane_map_mat7 = new THREE.MeshBasicMaterial({map: plane_map_t7});
+    var plane_map_mat8 = new THREE.MeshBasicMaterial({map: plane_map_t8});
+    var plane_map_mat9 = new THREE.MeshBasicMaterial({map: plane_map_t9});
+    var plane_map_mat10 = new THREE.MeshBasicMaterial({map: plane_map_t10});
+    var plane_map_mat11 = new THREE.MeshBasicMaterial({map: plane_map_t11});
+    var plane_map_mat12 = new THREE.MeshBasicMaterial({map: plane_map_t12});
+
+
+    var plane_map_m1 = new THREE.Mesh(plane_map_geo, plane_map_mat1);
+    var plane_map_m2 = new THREE.Mesh(plane_map_geo, plane_map_mat2);
+    var plane_map_m3 = new THREE.Mesh(plane_map_geo, plane_map_mat3);
+    var plane_map_m4 = new THREE.Mesh(plane_map_geo, plane_map_mat4);
+    var plane_map_m5 = new THREE.Mesh(plane_map_geo, plane_map_mat5);
+    var plane_map_m6 = new THREE.Mesh(plane_map_geo, plane_map_mat6);
+    var plane_map_m7 = new THREE.Mesh(plane_map_geo, plane_map_mat7);
+    var plane_map_m8 = new THREE.Mesh(plane_map_geo, plane_map_mat8);
+    var plane_map_m9 = new THREE.Mesh(plane_map_geo, plane_map_mat9);
+    var plane_map_m10 = new THREE.Mesh(plane_map_geo, plane_map_mat10);
+    var plane_map_m11 = new THREE.Mesh(plane_map_geo, plane_map_mat11);
+    var plane_map_m12 = new THREE.Mesh(plane_map_geo, plane_map_mat12);
+
+
+    ///// LOCATION Y is top, x is accross z is to the screen(up zoom);
+    
+
+    plane_map_m1.position.set(0+mxo,0+myo,5);
+    plane_map_m2.position.set(40+mxo,0+myo,5);
+    plane_map_m3.position.set(80+mxo,0+myo,5);
+    plane_map_m4.position.set(120+mxo,0+myo,5);
+    plane_map_m5.position.set(0+mxo,40+myo,5);
+    plane_map_m6.position.set(40+mxo,40+myo,5);
+    plane_map_m7.position.set(80+mxo,40+myo,5);
+    plane_map_m8.position.set(120+mxo,40+myo,5);
+    plane_map_m9.position.set(0+mxo,80+myo,5);
+    plane_map_m10.position.set(40+mxo,80+myo,5);
+    plane_map_m11.position.set(80+mxo,80+myo,5);
+    plane_map_m12.position.set(120+mxo,80+myo,5);
+
+
+    scene.add(plane_map_m1);
+    scene.add(plane_map_m2);
+    scene.add(plane_map_m3);
+    scene.add(plane_map_m4);
+    scene.add(plane_map_m5);
+    scene.add(plane_map_m6);
+    scene.add(plane_map_m7);
+    scene.add(plane_map_m8);
+    scene.add(plane_map_m9);
+    scene.add(plane_map_m10);
+    scene.add(plane_map_m11);
+    scene.add(plane_map_m12);
+    
+
+
+    //TODO scaling zoom functionality  \/
+    function scale_zoom() {
+
+    }
+
+    function map_update() {
+
+    }
+
+
+	var render = function () {
+		requestAnimationFrame( render );
+
+
+		renderer.render(scene, camera);
+	};
+
+	render();
+</script>
+
+<script>
+function inputLoop() {
+
+
+}
+
+var keys = [];
+
+setInterval(inputLoop,200);
+
+
+window.addEventListener("keydown", key_down, false);
+window.addEventListener("keypress", key_press, false);
+window.addEventListener("keyup", key_up, false);
+ 
+function key_down(e) {
+    keys[e.keyCode] = true;
+}
+
+function key_press(e) {
+    keys[e.keyCode] = true;
+}
+
+function key_up(e) {
+    keys[e.keyCode] = false;
+}
+
+</script>

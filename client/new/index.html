@@ -50,8 +50,9 @@
     var CURR_X = latTOgr(51.513615);    
     var CURR_Y = longTOgr(-0.114134);
 
-    var tile_x_min; //Tile request for minimum
-    var tile_y_min;
+    var tile_x_min = 255 * Math.pow(2,7); //Tile request for minimum x/y  (based on coords, zoom level 16)
+    var tile_y_min = 170 * Math.pow(2,7); 
+    var tile_zoom = 9//9;
 
 
     //  (CURR_X);
@@ -71,7 +72,7 @@
 
     var Tile = function(xv,yv) {
         this.geom = tile_geometry;
-        this.texture = THREE.ImageUtils.loadTexture('/earth.jpg');
+        this.texture = THREE.ImageUtils.loadTexture(getTile(x,y));//'/earth.jpg');
         this.material = new THREE.MeshBasicMaterial({map: this.texture});
         this.mesh = new THREE.Mesh(this.geom, this.material);
         scene.add(this.mesh);
@@ -92,7 +93,7 @@
         //this.mesh.scale.set(this.scale_v,this.scale_v,this.scale_v);
     }
 
-    Tile.prototype.image = function(str) {
+    Tile.prototype.newimage = function(str) {
         this.texture = THREE.ImageUtils.loadTexture(str);
         this.material = new THREE.MeshBasicMaterial({map:this.texture});
         this.mesh.material = this.material;
@@ -200,6 +201,18 @@
         
     }
 
+    Tile.prototype.checkremap = function() {
+        if(this.remap == true) {
+            var xrs = Math.round((this.x - minX_tile()) / 32);
+            var yrs = Math.round((this.y - minY_tile()) / 32);
+            //  alert("x="+xrs+",y="+yrs);
+            this.newimage(getTile(xrs,yrs));
+            //console.log(getTile(xrs,yrs));
+            this.remap = false;
+
+        }
+    }
+
     function wrapTiles(isX, isMAx) {
         var maxX = maxX_tile();
         var maxY = maxY_tile();
@@ -210,18 +223,49 @@
         }
     }
 
+    function handleRemaps() {
+        for(var v = 0; v < tile_count; v++) {
+            TILES[v].checkremap();
+        }
+    }
 
 
     function requestTile(xc,yc,zl) {            //PROGRESS1=>9/255/170  (256);
         return "http://a.tiles.mapbox.com/v4/mapbox.streets/"+zl+"/"+xc+"/"+yc+".png?access_token="+mapbox_key;
     }
 
-    function getTile(xr,yr,xG,yG,zoom) { //Returns a tile based on the zoom level off 17
+    function getTile(xG,yG) { //Returns a tile based on the zoom level off 16
+        /**
+        tile_x_min;
+        tile_y_min;
+        tile_zoom;
+        **/
+        var z = 16 - tile_zoom;       ///9 -> 16
+        var diff = Math.pow(2,0-z);//2^(0-z);
+        //alert(diff);
+        var xBase = Math.floor(tile_x_min * diff);
+        var yBase = Math.floor(tile_y_min * diff);
+        //alert(yBase);
+        //alert(xBase);
+        return requestTile(xBase+xG,yBase-yG,tile_zoom);
+    }
 
+    function movetilemins(x,y,zoom) {
+        var zoom_diff = Math.pow(2,16 - zoom);
+        //alert(zoom_diff);
+        tile_x_min += (x * zoom_diff);
+        //alert(tile_x_min);
+        tile_y_min += (y * zoom_diff);
+        //tile_x_min = Math.floor(tile_x_min);
+        //tile_y_min = Math.floor(tile_y_min);
     }
 
 
-
+    function requestAll() {
+        for(var v = 0; v < tile_count; v++) {
+            TILES[v].remap = true;
+        }
+    }
 
 </script>
 
@@ -340,41 +384,6 @@
     plane_menu.rotation.x = toRADS(2);
 
 
-    //New better approach
-
-    //Max pixel retrievable is 640x640 at SCALE of 2
-
-    //New Large Map with auto-loaded smart zoom stuff
-    /**
-
-    var plane_map_geo = new THREE.PlaneGeometry(160,160); //Can handle zooms up to 3x => more than enough
-    // 3x zoom level data load //movement to point where reset + request
-    var plane_map_z1 = THREE.ImageUtils.loadTexture(map_large(CURR_X,CURR_Y,11,maptype));
-    var plane_map_z2 = THREE.ImageUtils.loadTexture(map_large(CURR_X,CURR_Y,12,maptype));
-    var plane_map_z3 = THREE.ImageUtils.loadTexture(map_large(CURR_X,CURR_Y,13,maptype));
-    var plane_map_z4 = THREE.ImageUtils.loadTexture(map_large(CURR_X,CURR_Y,14,maptype));
-    var plane_map_z5 = THREE.ImageUtils.loadTexture(map_large(CURR_X,CURR_Y,15,maptype)); //DEFAULT
-    var plane_map_z6 = THREE.ImageUtils.loadTexture(map_large(CURR_X,CURR_Y,16,maptype));
-    var plane_map_z7 = THREE.ImageUtils.loadTexture(map_large(CURR_X,CURR_Y,17,maptype));
-
-    var plane_map_mat1 = new THREE.MeshBasicMaterial({map: plane_map_z1});
-    var plane_map_mat2 = new THREE.MeshBasicMaterial({map: plane_map_z2});
-    var plane_map_mat3 = new THREE.MeshBasicMaterial({map: plane_map_z3});
-    var plane_map_mat4 = new THREE.MeshBasicMaterial({map: plane_map_z4});
-    var plane_map_mat5 = new THREE.MeshBasicMaterial({map: plane_map_z5});
-    var plane_map_mat6 = new THREE.MeshBasicMaterial({map: plane_map_z6});
-    var plane_map_mat7 = new THREE.MeshBasicMaterial({map: plane_map_z7});
-    
-
-    var plane_map_mesh = new THREE.Mesh(plane_map_geo, plane_map_mat5);
-
-    plane_map_mesh.position.set(-10,-10,5);//(-75,-50,5)
-
-    scene.add(plane_map_mesh)
-    **/
-
-    //TODO scaling zoom functionality  \/
-
     
     //Movement map reset callback
 
@@ -390,6 +399,7 @@
     //                                      // THIS * LONG = LAT
     var grid_scale = 1689 / 160;//1;
 
+    var complete_refresh_count = 1000;
 
     function map_update() {
         var maxX = maxX_tile();
@@ -399,179 +409,84 @@
 
         if(maxX > 128) {
             wrapTiles(true,true);
+            movetilemins(-1,0,tile_zoom);
             //alert("wrap");
         }
         if(maxY > 128) {
-            wrapTiles(true,false);
+            wrapTiles(false,true);
+            movetilemins(0,1,tile_zoom);
             //alert("wrap");
         }
-        if(minX < -128) {
-            wrapTiles(false,true);
+        if(minX < -160) {
+            wrapTiles(true,false);
+            movetilemins(1,0,tile_zoom);
            //alert("wrap");
         }
-        if(minY < -128) {
+        if(minY < -160) {
             wrapTiles(false,false);
+            movetilemins(0,-1,tile_zoom);
             //alert("wrap");
         }
-    }
-
-    function new_image_center(x,y,scale,zoom) { //UTIL TO GAIN NEW CENTER ON REMAP  //SUBJECT TO IMPROVEMENTS
-        ////////alert("THE CAKE _ IT IS A LIE!!");
-        //STUFF
-        CURR_X += (x * scale * zoom * grid_scale);
-        //alert(y);
-        CURR_Y -= (y * scale * zoom * grid_scale)  * map_lal_scale;  // was * => Change???
-       // alert((y* scale * zoom * grid_scale));
+        handleRemaps();
         //
-        request_new_images();
-        camera.position.x = 0;
-        camera.position.y = 0;
+
+        /**    //DISABLED
+        complete_refresh_count --;
+        if(complete_refresh_count < 1) {
+            complete_refresh_count = 1000;
+            requestAll(); //Complete occasional refresh to handle errors
+        }
+        **/
+
     }
 
-    function request_new_images() {
-        return; //     #NADA                                    //For updates
-            ////////////////////alert("NEW IMAGE DATA");
-            var x = CURR_X;
-            var y = CURR_Y;
-            plane_map_z1 = THREE.ImageUtils.loadTexture(map_large(x,y,11,maptype));
-            plane_map_z2 = THREE.ImageUtils.loadTexture(map_large(x,y,12,maptype));
-            plane_map_z3 = THREE.ImageUtils.loadTexture(map_large(x,y,13,maptype));
-            plane_map_z4 = THREE.ImageUtils.loadTexture(map_large(x,y,14,maptype));
-            plane_map_z5 = THREE.ImageUtils.loadTexture(map_large(x,y,15,maptype)); //DEFAULT
-            plane_map_z6 = THREE.ImageUtils.loadTexture(map_large(x,y,16,maptype));
-            plane_map_z7 = THREE.ImageUtils.loadTexture(map_large(x,y,17,maptype));
+    
 
-            plane_map_mat1 = new THREE.MeshBasicMaterial({map: plane_map_z1});
-            plane_map_mat2 = new THREE.MeshBasicMaterial({map: plane_map_z2});
-            plane_map_mat3 = new THREE.MeshBasicMaterial({map: plane_map_z3});
-            plane_map_mat4 = new THREE.MeshBasicMaterial({map: plane_map_z4});
-            plane_map_mat5 = new THREE.MeshBasicMaterial({map: plane_map_z5});
-            plane_map_mat6 = new THREE.MeshBasicMaterial({map: plane_map_z6});
-            plane_map_mat7 = new THREE.MeshBasicMaterial({map: plane_map_z7});
-            //TODO ADD SMART CODE THAT REBINDS THE CORRECT ZOOM LEVEL
-
-            //DEBUG QUICK CODE
-            plane_map_mesh.material = plane_map_mat5;
-
-            //TODO ADD IMAGE CACHING FOR FASTER UPDATINGNESS                        #TODO
-            //ALSO OPTIMIZE                                     #OPTIMIZE     #POSSIBLY  #AT_THE_END eg NEVER
-            
+    function unlock_movement() {
             //Reset movements
             keys[87] = false;
             keys[65] = false;
             keys[83] = false;
             keys[68] = false;
     }
-
-    var z_num = 5;   //15 => 5        
-    var zoom_level = 0; //0 -> 100
-
-    var lock = true;
-
+   
+    var zoom_level = 25; //0 -> 100
     var old_zoom = 0;
+
+
     function zoom_update() {  //60 => 120 (scale / 75) scale values per location
         if(old_zoom != zoom_level) { //Change - DO SOMETHING
+
+                               //TODO READD ONCE DISTNCES CALCULATED AND ADD SMART PRE-CACHING
+            //Movement
+            if(zoom_level > 99) {
+                //ZOOM IN
+                if(tile_zoom  < 15) {
+                    tile_zoom ++;
+                    zoom_level = 3;
+                    //OFFSETS
+
+                    //
+                    requestAll();
+                }
+            }else if(zoom_level < 1) {
+                //ZOOM OUT
+                if(tile_zoom > 5) {
+                    tile_zoom --;
+                    zoom_level = 98;
+                    //OFFSETS
+
+                    //
+                    requestAll();
+                }
+            }
 
             //Lazy Test Zoom without image switching
             var dat = 0.75+((zoom_level / 100)*0.75);    ///REDONE FOR DIST DIFFERENTIAL TESETING
             scaleTiles(dat);
-            //alert(dat);                     //TODO READD ONCE DISTNCES CALCULATED AND ADD SMART PRE-CACHING
+            //alert(dat);  
 
-            var zoom_scale = 2^(zoom_level - 5);
-            var act = false;
-            var inz = false;
-
-            if(lock) {return;}
-
-            //Smart changing
-            if(zoom_level > 140) {
-                if(z_num == 1) {
-                    zoom_level = 70;
-                    plane_map_mesh.material = plane_map_mat2;
-                    z_num = 2;
-                    act = true;
-                    inz = true;
-                }else if(z_num == 2) {
-                    zoom_level = 70;
-                    plane_map_mesh.material = plane_map_mat3;
-                    z_num = 3;
-                    act = true;
-                    inz = true;
-                }else if(z_num == 3) {
-                    zoom_level = 70;
-                    plane_map_mesh.material = plane_map_mat4;
-                    z_num = 4;
-                    act = true;
-                    inz = true;
-                }else if(z_num == 4) {
-                    zoom_level = 70;
-                    plane_map_mesh.material = plane_map_mat5;
-                    z_num = 5;
-                    act = true;
-                    inz = true;
-                }else if(z_num == 5) {
-                    zoom_level = 70;
-                    plane_map_mesh.material = plane_map_mat6;
-                    z_num = 6;
-                    act = true;
-                    inz = true;
-                }else if(z_num == 6) {
-                    zoom_level = 70;
-                    plane_map_mesh.material = plane_map_mat7;
-                    z_num = 7;
-                    act = true;
-                    inz = true;
-                }
-            }else if(zoom_level < 70) {
-                if(z_num == 7) {
-                    zoom_level = 140;
-                    plane_map_mesh.material = plane_map_mat6;
-                    z_num = 6;
-                    act = true;
-                }else if(z_num == 6) {
-                    zoom_level = 140;
-                    plane_map_mesh.material = plane_map_mat5;
-                    z_num = 5;
-                    act = true;
-                }else if(z_num == 5) {
-                    zoom_level = 140;
-                    plane_map_mesh.material = plane_map_mat4;
-                    z_num = 4;
-                    act = true;
-                }else if(z_num == 4) {
-                    zoom_level = 140;
-                    plane_map_mesh.material = plane_map_mat3;
-                    z_num = 3;
-                    act = true;
-                }else if(z_num == 3) {
-                    zoom_level = 140;
-                    plane_map_mesh.material = plane_map_mat2;
-                    z_num = 2;
-                    act = true;
-                }else if(z_num == 2) {
-                    zoom_level = 140;
-                    plane_map_mesh.material = plane_map_mat1;
-                    z_num = 1;
-                    act = true;
-                }
-            }
-            //TODO move said smart changed thing with possible re-requesting
-
-            //TODO MAKE BETTER
-
-            var x = camera.position.x;
-            var y = camera.position.y;
-
-            if(x < 20 || x > 20 || y < 20 || y > 20) {
-                request_new_images();
-            }
-
-
-
-            ///
-            var dat = (zoom_level / 75);    ///REDONE FOR DIST DIFFERENTIAL TESETING
-            plane_map_mesh.scale.set(dat,dat,dat);
-
+ 
             old_zoom = zoom_level;
         }else {
             //   #NADA

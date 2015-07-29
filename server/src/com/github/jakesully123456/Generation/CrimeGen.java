@@ -14,9 +14,9 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public class CrimeGen {
 
 	public HashMap<String, Integer> crimes;
-	public CrimeGen() {
+	public CrimeGen(WardGen wardGen) {
 		crimes = new HashMap<String, Integer>();
-		for (String ward : new WardGen().wards()) {
+		for (String ward : wardGen.wards()) {
 			int crimeCount = find(ward);
 			if (crimeCount != -1) {
 				crimes.put(ward, crimeCount);

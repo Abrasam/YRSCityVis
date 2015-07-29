@@ -7,6 +7,7 @@ import com.github.jakesully123456.Generation.CrimeGen;
 import com.github.jakesully123456.Generation.FireGen;
 import com.github.jakesully123456.Generation.PriceGen;
 import com.github.jakesully123456.Generation.WardGen;
+import com.github.jakesully123456.Generation.WardLocationGen;
 import com.github.jakesully123456.Transfer.JSONConverter;
 
 public class CityVisServer {
@@ -19,14 +20,15 @@ public class CityVisServer {
 		JSONConverter.parseArray(layers.get("boroughs").getData());
 		WardGen wards = new WardGen();
 		wards.print();
-		CrimeGen crimes = new CrimeGen();
-		System.out.println(crimes.crimes.keySet().toString());
+		WardLocationGen wlg = new WardLocationGen(wards);
+		CrimeGen crimes = new CrimeGen(wards);
 		FireGen fires = new FireGen(gen);
 		PriceGen price = new PriceGen(gen);
 		System.out.println(wards.wards().size());
 		System.out.println(crimes.crimes.keySet().size());
 		System.out.println(fires.fires.keySet().size());
 		System.out.println(price.prices.keySet().size());
+		System.out.println(wlg.items.size());
 	}
 	
 	private static void layers() {

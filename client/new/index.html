@@ -52,6 +52,10 @@
 			canvas { width: 100%; height: 100% }
 		</style>
 	</head>
+
+    <div id="div_dat" style="display: none;">
+
+    </div>
 </html>
 
 <script>   //NOTES Z IS UP
@@ -129,97 +133,17 @@
     var def_lat = 2500; //TESTED AT 2500,2500
     var def_long = 3000;
 
+    //// MENU
 
-    //Grid planes -> simple updates handles in render function
+    var geo_menu = new THREE.PlaneGeometry(50,300);
+    var mat_blue = new THREE.MeshBasicMaterial( {color: 0x0000ff, side: THREE.DoubleSide} );
+    var plane_menu = new THREE.Mesh( geo_menu, mat_blue );
+    scene.add( plane_menu );
+    plane_menu.position.set(-50,-50,20);
+    plane_menu.rotation.y = toRADS(2);//-(Math.PI / 2);
+    plane_menu.rotation.z = toRADS(0);
+    plane_menu.rotation.x = toRADS(2);
 
-
-    /**     TESTED - Principle idea option  => Going for better rewrite but keeping data
-
-    var plane_map_geo = new THREE.PlaneGeometry(40, 40);
-
-    var plane_map_t1 = THREE.ImageUtils.loadTexture(map_scale(def_long,def_lat,14,maptype));
-    
-    var plane_map_t2 = THREE.ImageUtils.loadTexture(map_scale(def_long,def_lat+de_lo,14,maptype));
-    
-    var plane_map_t3 = THREE.ImageUtils.loadTexture(map_scale(def_long,def_lat+de_lo+de_lo,14,maptype));
-    
-    var plane_map_t4 = THREE.ImageUtils.loadTexture(map_scale(def_long,def_lat+de_lo+de_lo+de_lo,14,maptype));
-    
-    var plane_map_t5 = THREE.ImageUtils.loadTexture(map_scale(def_long+de_l,def_lat,14,maptype));
-    
-    var plane_map_t6 = THREE.ImageUtils.loadTexture(map_scale(def_long+de_l,def_lat+de_lo,14,maptype));
-    
-    var plane_map_t7 = THREE.ImageUtils.loadTexture(map_scale(def_long+de_l,def_lat+de_lo+de_lo,14,maptype));
-    
-    var plane_map_t8 = THREE.ImageUtils.loadTexture(map_scale(def_long+de_l,def_lat+de_lo+de_lo+de_lo,14,maptype));
-    
-    var plane_map_t9 = THREE.ImageUtils.loadTexture(map_scale(def_long+de_l+de_l,def_lat,14,maptype));
-    
-    var plane_map_t10 = THREE.ImageUtils.loadTexture(map_scale(def_long+de_l+de_l,def_lat+de_lo,14,maptype));
-    
-    var plane_map_t11 = THREE.ImageUtils.loadTexture(map_scale(def_long+de_l+de_l,def_lat+de_lo+de_lo,14,maptype));
-    
-    var plane_map_t12 = THREE.ImageUtils.loadTexture(map_scale(def_long+de_l+de_l,def_lat,2500+de_lo+de_lo+de_lo,14,maptype));
-
-    var plane_map_mat1 = new THREE.MeshBasicMaterial({map: plane_map_t1});
-    var plane_map_mat2 = new THREE.MeshBasicMaterial({map: plane_map_t2});
-    var plane_map_mat3 = new THREE.MeshBasicMaterial({map: plane_map_t3});
-    var plane_map_mat4 = new THREE.MeshBasicMaterial({map: plane_map_t4});
-    var plane_map_mat5 = new THREE.MeshBasicMaterial({map: plane_map_t5});
-    var plane_map_mat6 = new THREE.MeshBasicMaterial({map: plane_map_t6});
-    var plane_map_mat7 = new THREE.MeshBasicMaterial({map: plane_map_t7});
-    var plane_map_mat8 = new THREE.MeshBasicMaterial({map: plane_map_t8});
-    var plane_map_mat9 = new THREE.MeshBasicMaterial({map: plane_map_t9});
-    var plane_map_mat10 = new THREE.MeshBasicMaterial({map: plane_map_t10});
-    var plane_map_mat11 = new THREE.MeshBasicMaterial({map: plane_map_t11});
-    var plane_map_mat12 = new THREE.MeshBasicMaterial({map: plane_map_t12});
-
-
-    var plane_map_m1 = new THREE.Mesh(plane_map_geo, plane_map_mat1);
-    var plane_map_m2 = new THREE.Mesh(plane_map_geo, plane_map_mat2);
-    var plane_map_m3 = new THREE.Mesh(plane_map_geo, plane_map_mat3);
-    var plane_map_m4 = new THREE.Mesh(plane_map_geo, plane_map_mat4);
-    var plane_map_m5 = new THREE.Mesh(plane_map_geo, plane_map_mat5);
-    var plane_map_m6 = new THREE.Mesh(plane_map_geo, plane_map_mat6);
-    var plane_map_m7 = new THREE.Mesh(plane_map_geo, plane_map_mat7);
-    var plane_map_m8 = new THREE.Mesh(plane_map_geo, plane_map_mat8);
-    var plane_map_m9 = new THREE.Mesh(plane_map_geo, plane_map_mat9);
-    var plane_map_m10 = new THREE.Mesh(plane_map_geo, plane_map_mat10);
-    var plane_map_m11 = new THREE.Mesh(plane_map_geo, plane_map_mat11);
-    var plane_map_m12 = new THREE.Mesh(plane_map_geo, plane_map_mat12);
-
-
-    ///// LOCATION Y is top, x is accross z is to the screen(up zoom);
-    
-
-    plane_map_m1.position.set(0+mxo,0+myo,5);
-    plane_map_m2.position.set(40+mxo,0+myo,5);
-    plane_map_m3.position.set(80+mxo,0+myo,5);
-    plane_map_m4.position.set(120+mxo,0+myo,5);
-    plane_map_m5.position.set(0+mxo,40+myo,5);
-    plane_map_m6.position.set(40+mxo,40+myo,5);
-    plane_map_m7.position.set(80+mxo,40+myo,5);
-    plane_map_m8.position.set(120+mxo,40+myo,5);
-    plane_map_m9.position.set(0+mxo,80+myo,5);
-    plane_map_m10.position.set(40+mxo,80+myo,5);
-    plane_map_m11.position.set(80+mxo,80+myo,5);
-    plane_map_m12.position.set(120+mxo,80+myo,5);
-
-
-    scene.add(plane_map_m1);
-    scene.add(plane_map_m2);
-    scene.add(plane_map_m3);
-    scene.add(plane_map_m4);
-    scene.add(plane_map_m5);
-    scene.add(plane_map_m6);
-    scene.add(plane_map_m7);
-    scene.add(plane_map_m8);
-    scene.add(plane_map_m9);
-    scene.add(plane_map_m10);
-    scene.add(plane_map_m11);
-    scene.add(plane_map_m12);
-    
-    **/
 
     //New better approach
 
@@ -230,14 +154,23 @@
     var plane_map_geo = new THREE.PlaneGeometry(160,160); //Can handle zooms up to 3x => more than enough
     // 3x zoom level data load //movement to point where reset + request
     var plane_map_z1 = THREE.ImageUtils.loadTexture(map_large(CURR_X,CURR_Y,11,maptype));
-    var plane_map_z2 = THREE.ImageUtils.loadTexture(map_large(CURR_X,CURR_Y,15,maptype));
-    var plane_map_z3 = THREE.ImageUtils.loadTexture(map_large(CURR_X,CURR_Y,17,maptype));
+    var plane_map_z2 = THREE.ImageUtils.loadTexture(map_large(CURR_X,CURR_Y,12,maptype));
+    var plane_map_z3 = THREE.ImageUtils.loadTexture(map_large(CURR_X,CURR_Y,13,maptype));
+    var plane_map_z4 = THREE.ImageUtils.loadTexture(map_large(CURR_X,CURR_Y,14,maptype));
+    var plane_map_z5 = THREE.ImageUtils.loadTexture(map_large(CURR_X,CURR_Y,15,maptype)); //DEFAULT
+    var plane_map_z6 = THREE.ImageUtils.loadTexture(map_large(CURR_X,CURR_Y,16,maptype));
+    var plane_map_z7 = THREE.ImageUtils.loadTexture(map_large(CURR_X,CURR_Y,17,maptype));
 
     var plane_map_mat1 = new THREE.MeshBasicMaterial({map: plane_map_z1});
     var plane_map_mat2 = new THREE.MeshBasicMaterial({map: plane_map_z2});
     var plane_map_mat3 = new THREE.MeshBasicMaterial({map: plane_map_z3});
+    var plane_map_mat4 = new THREE.MeshBasicMaterial({map: plane_map_z4});
+    var plane_map_mat5 = new THREE.MeshBasicMaterial({map: plane_map_z5});
+    var plane_map_mat6 = new THREE.MeshBasicMaterial({map: plane_map_z6});
+    var plane_map_mat7 = new THREE.MeshBasicMaterial({map: plane_map_z7});
+    
 
-    var plane_map_mesh = new THREE.Mesh(plane_map_geo, plane_map_mat2);
+    var plane_map_mesh = new THREE.Mesh(plane_map_geo, plane_map_mat5);
 
     plane_map_mesh.position.set(-10,-10,5);//(-75,-50,5)
 
@@ -259,11 +192,11 @@
     //The hard part ==> Resetting to correct coords
     var map_lal_scale = 2220 / 1680  //Coordinate differential => (based of earlier testing with zoom L14) + 400x400 area  (lat / long)
     //                                      // THIS * LONG = LAT
-    var grid_scale = 1;
+    var grid_scale = 1689 / 160;//1;
 
 
     function map_update() {
-        var scale = plane_map_mesh.scale.x;
+        var scale = 1 / plane_map_mesh.scale.x;
         var x = camera.position.x;
         var y = camera.position.y;
         var zoom_scale = 1;//zoom_level;  //REWORK WITH LATER DATA
@@ -298,7 +231,7 @@
         //STUFF
         CURR_X += (x * scale * zoom * grid_scale);
         alert(y);
-        CURR_Y += (y * scale * zoom * grid_scale)  * map_lal_scale;  // was * => Change???
+        CURR_Y -= (y * scale * zoom * grid_scale)  * map_lal_scale;  // was * => Change???
         alert((y* scale * zoom * grid_scale));
         //
         request_new_images();
@@ -312,31 +245,104 @@
             var x = CURR_X;
             var y = CURR_Y;
             plane_map_z1 = THREE.ImageUtils.loadTexture(map_large(x,y,11,maptype));
-            plane_map_z2 = THREE.ImageUtils.loadTexture(map_large(x,y,15,maptype));
-            plane_map_z3 = THREE.ImageUtils.loadTexture(map_large(x,y,17,maptype));
-
+            plane_map_z2 = THREE.ImageUtils.loadTexture(map_large(x,y,12,maptype));
+            plane_map_z3 = THREE.ImageUtils.loadTexture(map_large(x,y,13,maptype));
+            plane_map_z4 = THREE.ImageUtils.loadTexture(map_large(x,y,14,maptype));
+            plane_map_z5 = THREE.ImageUtils.loadTexture(map_large(x,y,15,maptype)); //DEFAULT
+            plane_map_z6 = THREE.ImageUtils.loadTexture(map_large(x,y,16,maptype));
+            plane_map_z7 = THREE.ImageUtils.loadTexture(map_large(x,y,17,maptype));
 
             plane_map_mat1 = new THREE.MeshBasicMaterial({map: plane_map_z1});
             plane_map_mat2 = new THREE.MeshBasicMaterial({map: plane_map_z2});
             plane_map_mat3 = new THREE.MeshBasicMaterial({map: plane_map_z3});
+            plane_map_mat4 = new THREE.MeshBasicMaterial({map: plane_map_z4});
+            plane_map_mat5 = new THREE.MeshBasicMaterial({map: plane_map_z5});
+            plane_map_mat6 = new THREE.MeshBasicMaterial({map: plane_map_z6});
+            plane_map_mat7 = new THREE.MeshBasicMaterial({map: plane_map_z7});
             //TODO ADD SMART CODE THAT REBINDS THE CORRECT ZOOM LEVEL
 
             //DEBUG QUICK CODE
-            plane_map_mesh.material = plane_map_mat2;
+            plane_map_mesh.material = plane_map_mat5;
 
             //TODO ADD IMAGE CACHING FOR FASTER UPDATINGNESS                        #TODO
             //ALSO OPTIMIZE                                     #OPTIMIZE     #POSSIBLY  #AT_THE_END eg NEVER
     }
 
+    var z_num = 5;
     var zoom_level = 75;
+
+    var lock = false;
+
     var old_zoom = -12345;
     function zoom_update() {  //60 => 120 (scale / 75) scale values per location
         if(old_zoom != zoom_level) { //Change - DO SOMETHING
 
             //Lazy Test Zoom without image switching
             var dat = (zoom_level / 75);    ///REDONE FOR DIST DIFFERENTIAL TESETING
-            //plane_map_mesh.scale.set(dat,dat,dat);                        //TODO READD ONCE DISTNCES CALCULATED AND ADD SMART PRE-CACHING
+            plane_map_mesh.scale.set(dat,dat,dat);                        //TODO READD ONCE DISTNCES CALCULATED AND ADD SMART PRE-CACHING
 
+            if(lock) {return;}
+
+            //Smart changing
+            if(zoom_level > 140) {
+                if(z_num == 1) {
+                    zoom_level = 70;
+                    plane_map_mesh.material = plane_map_mat2;
+                    z_num = 2;
+                }else if(z_num == 2) {
+                    zoom_level = 70;
+                    plane_map_mesh.material = plane_map_mat3;
+                    z_num = 3;
+                }else if(z_num == 3) {
+                    zoom_level = 70;
+                    plane_map_mesh.material = plane_map_mat4;
+                    z_num = 4;
+                }else if(z_num == 4) {
+                    zoom_level = 70;
+                    plane_map_mesh.material = plane_map_mat5;
+                    z_num = 5;
+                }else if(z_num == 5) {
+                    zoom_level = 70;
+                    plane_map_mesh.material = plane_map_mat6;
+                    z_num = 6;
+                }else if(z_num == 6) {
+                    zoom_level = 70;
+                    plane_map_mesh.material = plane_map_mat7;
+                    z_num = 7;
+                }
+            }else if(zoom_level < 70) {
+                if(z_num == 7) {
+                    zoom_level = 140;
+                    plane_map_mesh.material = plane_map_mat6;
+                    z_num = 6;
+                }else if(z_num == 6) {
+                    zoom_level = 140;
+                    plane_map_mesh.material = plane_map_mat5;
+                    z_num = 5;
+                }else if(z_num == 5) {
+                    zoom_level = 140;
+                    plane_map_mesh.material = plane_map_mat4;
+                    z_num = 4;
+                }else if(z_num == 4) {
+                    zoom_level = 140;
+                    plane_map_mesh.material = plane_map_mat3;
+                    z_num = 3;
+                }else if(z_num == 3) {
+                    zoom_level = 140;
+                    plane_map_mesh.material = plane_map_mat2;
+                    z_num = 2;
+                }else if(z_num == 2) {
+                    zoom_level = 140;
+                    plane_map_mesh.material = plane_map_mat1;
+                    z_num = 1;
+                }
+            }
+            //TODO move said smart changed thing with possible re-requesting
+
+
+            ///
+            var dat = (zoom_level / 75);    ///REDONE FOR DIST DIFFERENTIAL TESETING
+            plane_map_mesh.scale.set(dat,dat,dat);
 
             old_zoom = zoom_level;
         }else {
@@ -364,13 +370,13 @@ function inputLoop() {
         wheel_delta = 0;
         //DO STUFF
         zoom_level+= 2;
-        if(zoom_level > 200) {zoom_level = 200}
+        if(zoom_level > 160) {zoom_level = 160}
     }
     if(wheel_delta == -1) {
         wheel_delta = 0;
         //DO STUFF
         zoom_level-= 2;
-        if(zoom_level < 0) {zoom_level = 0;}
+        if(zoom_level < 60) {zoom_level = 60;}
     }
     //MOVEMENT STUFF - HANDLE MOVEMENT AND IMAGE RESET CALLS
     if(keys[87]) { //W

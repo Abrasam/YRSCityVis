@@ -1,6 +1,9 @@
 package com.github.jakesully123456.Generation;
 
 public class GenUtil {
+	
+	public static String absolutePath;
+	
     public static final double data_ax_v = 51.723685;
     public static final double data_ay_v = 0.426118;
     public static final double data_bx_v = 51.238917;
@@ -29,4 +32,8 @@ public class GenUtil {
         return data_by_v + ( sixdp(v) * data_y_unit);
     }
 
+    
+    public static void setAbsolutePath(String absolutePath) {
+    	GenUtil.absolutePath = absolutePath;
+    }
 }

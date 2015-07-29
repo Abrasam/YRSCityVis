@@ -1,3 +1,3 @@
-python -m SimpleHTTPServer
-python -m http.server
+C:\Python27\python -m SimpleHTTPServer
+C:\Python27\python -m http.server
 pause

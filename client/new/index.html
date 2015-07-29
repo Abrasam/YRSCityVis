@@ -323,6 +323,9 @@
 
             //DEBUG QUICK CODE
             plane_map_mesh.material = plane_map_mat2;
+
+            //TODO ADD IMAGE CACHING FOR FASTER UPDATINGNESS                        #TODO
+            //ALSO OPTIMIZE                                     #OPTIMIZE     #POSSIBLY  #AT_THE_END eg NEVER
     }
 
     var zoom_level = 75;
@@ -331,8 +334,8 @@
         if(old_zoom != zoom_level) { //Change - DO SOMETHING
 
             //Lazy Test Zoom without image switching
-            var dat = (zoom_level / 75);
-            plane_map_mesh.scale.set(dat,dat,dat);
+            var dat = (zoom_level / 75);    ///REDONE FOR DIST DIFFERENTIAL TESETING
+            //plane_map_mesh.scale.set(dat,dat,dat);                        //TODO READD ONCE DISTNCES CALCULATED AND ADD SMART PRE-CACHING
 
 
             old_zoom = zoom_level;

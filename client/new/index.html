@@ -1,7 +1,22 @@
 <script src="three.min.js"></script>
+<script src="key.txt" type="textfile" id="mapkey"></script>
+
+
+
+
+
 
 <script>
     
+    //var mapbox_key = document.getElementById("mapkey").text;
+    //alert(mapbox_key);
+    var mapbox_key = "pk.eyJ1IjoieXJzLWN2aXMiLCJhIjoiOGExOTQwOGZjY2MzOWYyNGRkMWU5NzEzMzIzNTBmY2YifQ._HZsmmVWOLJZjYzcr91Abw";
+
+    var keys = [];
+
+    var traffic = false;
+
+
     var data_ax_v = 51.723685;
     var data_ay_v = 0.426118;
     var data_bx_v = 51.238917;
@@ -32,17 +47,227 @@
 
 
     //Render option
-    var CURR_X = latTOgr(51.513615);
+    var CURR_X = latTOgr(51.513615);    
     var CURR_Y = longTOgr(-0.114134);
-    //alert(CURR_X);
+
+    var tile_x_min = 255 * Math.pow(2,7); //Tile request for minimum x/y  (based on coords, zoom level 16)
+    var tile_y_min = 170 * Math.pow(2,7); 
+    var tile_zoom = 9//9;
+
+
+    //  (CURR_X);
     //alert(CURR_Y);
     //
     var zoom_level = 100; //1 - 100, with 101 being underground
     //Requests use zoom levels - 12,14 and 17 with scaling used for the inbetweens
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(85, window.innerWidth/window.innerHeight, 0.1, 1000 );
+    var pointLight = new THREE.PointLight(0xFFFFFF);
 
 </script>
 
+<script> //New tile based system
+    
+    var tile_geometry = new THREE.PlaneGeometry(32,32);
 
+    var Tile = function(xv,yv) {
+        this.geom = tile_geometry;
+        this.texture = THREE.ImageUtils.loadTexture(getTile(x,y));//'/earth.jpg');
+        this.material = new THREE.MeshBasicMaterial({map: this.texture});
+        this.mesh = new THREE.Mesh(this.geom, this.material);
+        scene.add(this.mesh);
+        this.x = (xv * 32) - 90;//100;
+        this.y = (yv * 32) - 90;//100;
+        this.scale_v = 1;
+        this.remap = false;
+        this.mesh.position.set(this.x,this.y,5);
+    }
+
+    Tile.prototype.shift = function(xv,yv) {
+        this.x +=xv;
+        this.y +=yv;
+        ///
+        var r_x = this.x * this.scale_v;
+        var r_y = this.y * this.scale_v;
+        this.mesh.position.set(r_x,r_y,5);
+        //this.mesh.scale.set(this.scale_v,this.scale_v,this.scale_v);
+    }
+
+    Tile.prototype.newimage = function(str) {
+        this.texture = THREE.ImageUtils.loadTexture(str);
+        this.material = new THREE.MeshBasicMaterial({map:this.texture});
+        this.mesh.material = this.material;
+    }
+
+    Tile.prototype.scale = function(s) {
+        //
+        this.scale_v = s;
+        var r_x = this.x * this.scale_v;
+        var r_y = this.y * this.scale_v;
+        this.mesh.position.set(r_x,r_y,5);
+        this.mesh.scale.set(this.scale_v,this.scale_v,this.scale_v);
+    }
+
+
+
+    var TILES = []
+    var tile_count = 0;
+
+    //Init
+    for(var x = 0; x < 6; x++) {
+        for(var y = 0; y < 6; y++) {
+            TILES[(x*6)+y] = new Tile(x,y);
+            tile_count++;
+        }
+    }
+
+    function scaleTiles(scale_value) {
+        for(var v = 0; v < tile_count; v++) {
+            TILES[v].scale(scale_value);
+        }
+    }
+
+    function moveTiles(xm,ym) {
+        for(var v = 0; v < tile_count; v++) {
+            TILES[v].shift(xm,ym);
+        }
+    }
+
+    function maxX_tile() {
+        var val = -10000;
+        for(var v = 0; v < tile_count; v++) {
+            if(TILES[v].x > val) {
+                val = TILES[v].x;
+            }
+        }
+        return val;
+    }
+    function maxY_tile() {
+        var val = -10000;
+        for(var v = 0; v < tile_count; v++) {
+            if(TILES[v].y > val) {
+                val = TILES[v].y;
+            }
+        }
+        return val;
+    }
+    function minX_tile() {
+        var val = 10000;
+        for(var v = 0; v < tile_count; v++) {
+            if(TILES[v].x < val) {
+                val = TILES[v].x;
+            }
+        }
+        return val;
+    }
+    function minY_tile() {
+        var val = 10000;
+        for(var v = 0; v < tile_count; v++) {
+            if(TILES[v].y < val) {
+                val = TILES[v].y;
+            }
+        }
+        return val;
+    }
+
+
+    Tile.prototype.wrap = function(isX,isMax,maxX,maxY,minX,minY) {
+        var shif = 192;
+        if(isX) {
+            if(isMax) {
+                if(this.x == maxX) {
+                    this.shift(-shif,0);
+                    this.remap = true;
+                }
+            }else{
+                if(this.x == minX) {
+                    this.shift(shif,0);
+                    this.remap = true;
+                }
+            }
+        }else{
+            if(isMax) {
+                if(this.y == maxY) {
+                    this.shift(0,-shif);
+                    this.remap = true;
+                }
+            }else{
+                if(this.y == minY) {
+                    this.shift(0,+shif);
+                    this.remap = true;
+                }
+            }
+        }
+        
+    }
+
+    Tile.prototype.checkremap = function() {
+        if(this.remap == true) {
+            var xrs = Math.round((this.x - minX_tile()) / 32);
+            var yrs = Math.round((this.y - minY_tile()) / 32);
+            //  alert("x="+xrs+",y="+yrs);
+            this.newimage(getTile(xrs,yrs));
+            //console.log(getTile(xrs,yrs));
+            this.remap = false;
+
+        }
+    }
+
+    function wrapTiles(isX, isMAx) {
+        var maxX = maxX_tile();
+        var maxY = maxY_tile();
+        var minX = minX_tile();
+        var minY = minY_tile();
+        for(var v = 0; v < tile_count; v++) {
+            TILES[v].wrap(isX, isMAx,maxX,maxY,minX,minY);
+        }
+    }
+
+    function handleRemaps() {
+        for(var v = 0; v < tile_count; v++) {
+            TILES[v].checkremap();
+        }
+    }
+
+
+    function requestTile(xc,yc,zl) {            //PROGRESS1=>9/255/170  (256);
+        return "http://a.tiles.mapbox.com/v4/mapbox.streets/"+zl+"/"+xc+"/"+yc+".png?access_token="+mapbox_key;
+    }
+
+    function getTile(xG,yG) { //Returns a tile based on the zoom level off 16
+        /**
+        tile_x_min;
+        tile_y_min;
+        tile_zoom;
+        **/
+        var z = 16 - tile_zoom;       ///9 -> 16
+        var diff = Math.pow(2,0-z);//2^(0-z);
+        //alert(diff);
+        var xBase = Math.floor(tile_x_min * diff);
+        var yBase = Math.floor(tile_y_min * diff);
+        //alert(yBase);
+        //alert(xBase);
+        return requestTile(xBase+xG,yBase-yG,tile_zoom);
+    }
+
+    function movetilemins(x,y,zoom) {
+        var zoom_diff = Math.pow(2,16 - zoom);
+        //alert(zoom_diff);
+        tile_x_min += (x * zoom_diff);
+        //alert(tile_x_min);
+        tile_y_min += (y * zoom_diff);
+        //tile_x_min = Math.floor(tile_x_min);
+        //tile_y_min = Math.floor(tile_y_min);
+    }
+
+
+    function requestAll() {
+        for(var v = 0; v < tile_count; v++) {
+            TILES[v].remap = true;
+        }
+    }
+
+</script>
 
 <html>
 	<head>
@@ -52,6 +277,10 @@
 			canvas { width: 100%; height: 100% }
 		</style>
 	</head>
+
+    <div id="div_dat" style="display: none;">
+
+    </div>
 </html>
 
 <script>   //NOTES Z IS UP
@@ -72,13 +301,17 @@
     }
 
     function map_large(x,y,zoom,type) {  // NEW ZOOMS = 17,15,11
-        return map(grTOlat(x),grTOlong(y),zoom,type,640,640,2);
-    }
+        //return map(grTOlat(x),grTOlong(y),zoom,type,640,640,2);
+        if(!traffic) {
+        return "http://api.mapbox.com/v4/mapbox.emerald/"+grTOlong(y)+","+grTOlat(x)+","+zoom+"/1280x1280.png?access_token="+mapbox_key;
+        }else {
+            return "http://api.mapbox.com/v4/mapbox.emerald/"+grTOlong(y)+","+grTOlat(x)+","+zoom+"/1280x1280.png?access_token="+mapbox_key;
+        }
+       // alert("http://api.mapbox.com/v4/mapbox.emerald/"+grTOlong(y)+","+grTOlat(x)+","+zoom+"/640x640.png?access_token="+mapbox_key);
+}    
 
 
-	var scene = new THREE.Scene();
-	var camera = new THREE.PerspectiveCamera(85, window.innerWidth/window.innerHeight, 0.1, 1000 );
-	var pointLight = new THREE.PointLight(0xFFFFFF);
+	
 	pointLight.position.x = 0;
     pointLight.position.y = 500;
     pointLight.position.z = 0;
@@ -107,12 +340,22 @@
 
 
 
-	camera.position.x = -10;
-	camera.position.y = -10;
+	camera.position.x = 0;
+	camera.position.y = 0;
 	camera.position.z = 40; 
 	camera.rotation.y = toRADS(2);//-(Math.PI / 2);
 	camera.rotation.z = toRADS(0);
 	camera.rotation.x = toRADS(2);
+
+    var geo_grey = new THREE.PlaneGeometry(800,800);
+    var mat_grey= new THREE.MeshBasicMaterial( {color: 0xcccccc, side: THREE.DoubleSide} );
+    var plane_grey = new THREE.Mesh( geo_grey, mat_grey );
+
+    plane_grey.position.set(-300,-300,3);
+
+    scene.add(plane_grey);
+
+
 
     //Moving updating grid
     //GRID DATA VALS
@@ -129,134 +372,127 @@
     var def_lat = 2500; //TESTED AT 2500,2500
     var def_long = 3000;
 
+    //// MENU
 
-    //Grid planes -> simple updates handles in render function
+    var geo_menu = new THREE.PlaneGeometry(50,300);
+    var mat_blue = new THREE.MeshBasicMaterial( {color: 0x0000ff, side: THREE.DoubleSide} );
+    var plane_menu = new THREE.Mesh( geo_menu, mat_blue );
+    scene.add( plane_menu );
+    plane_menu.position.set(-50,-50,20);
+    plane_menu.rotation.y = toRADS(2);//-(Math.PI / 2);
+    plane_menu.rotation.z = toRADS(0);
+    plane_menu.rotation.x = toRADS(2);
 
 
-    /**     TESTED - Principle idea option  => Going for better rewrite but keeping data
-
-    var plane_map_geo = new THREE.PlaneGeometry(40, 40);
-
-    var plane_map_t1 = THREE.ImageUtils.loadTexture(map_scale(def_long,def_lat,14,maptype));
     
-    var plane_map_t2 = THREE.ImageUtils.loadTexture(map_scale(def_long,def_lat+de_lo,14,maptype));
-    
-    var plane_map_t3 = THREE.ImageUtils.loadTexture(map_scale(def_long,def_lat+de_lo+de_lo,14,maptype));
-    
-    var plane_map_t4 = THREE.ImageUtils.loadTexture(map_scale(def_long,def_lat+de_lo+de_lo+de_lo,14,maptype));
-    
-    var plane_map_t5 = THREE.ImageUtils.loadTexture(map_scale(def_long+de_l,def_lat,14,maptype));
-    
-    var plane_map_t6 = THREE.ImageUtils.loadTexture(map_scale(def_long+de_l,def_lat+de_lo,14,maptype));
-    
-    var plane_map_t7 = THREE.ImageUtils.loadTexture(map_scale(def_long+de_l,def_lat+de_lo+de_lo,14,maptype));
-    
-    var plane_map_t8 = THREE.ImageUtils.loadTexture(map_scale(def_long+de_l,def_lat+de_lo+de_lo+de_lo,14,maptype));
-    
-    var plane_map_t9 = THREE.ImageUtils.loadTexture(map_scale(def_long+de_l+de_l,def_lat,14,maptype));
-    
-    var plane_map_t10 = THREE.ImageUtils.loadTexture(map_scale(def_long+de_l+de_l,def_lat+de_lo,14,maptype));
-    
-    var plane_map_t11 = THREE.ImageUtils.loadTexture(map_scale(def_long+de_l+de_l,def_lat+de_lo+de_lo,14,maptype));
-    
-    var plane_map_t12 = THREE.ImageUtils.loadTexture(map_scale(def_long+de_l+de_l,def_lat,2500+de_lo+de_lo+de_lo,14,maptype));
+    //Movement map reset callback
 
-    var plane_map_mat1 = new THREE.MeshBasicMaterial({map: plane_map_t1});
-    var plane_map_mat2 = new THREE.MeshBasicMaterial({map: plane_map_t2});
-    var plane_map_mat3 = new THREE.MeshBasicMaterial({map: plane_map_t3});
-    var plane_map_mat4 = new THREE.MeshBasicMaterial({map: plane_map_t4});
-    var plane_map_mat5 = new THREE.MeshBasicMaterial({map: plane_map_t5});
-    var plane_map_mat6 = new THREE.MeshBasicMaterial({map: plane_map_t6});
-    var plane_map_mat7 = new THREE.MeshBasicMaterial({map: plane_map_t7});
-    var plane_map_mat8 = new THREE.MeshBasicMaterial({map: plane_map_t8});
-    var plane_map_mat9 = new THREE.MeshBasicMaterial({map: plane_map_t9});
-    var plane_map_mat10 = new THREE.MeshBasicMaterial({map: plane_map_t10});
-    var plane_map_mat11 = new THREE.MeshBasicMaterial({map: plane_map_t11});
-    var plane_map_mat12 = new THREE.MeshBasicMaterial({map: plane_map_t12});
+    //Variables => Subject to refinement :D
 
+    var xMax_r = 30;    //Reset values for scale 15
+    var xMin_r = -30;
+    var yMax_r = 30;    //Scaled using values from the plane.scale data
+    var yMin_r = -30;
 
-    var plane_map_m1 = new THREE.Mesh(plane_map_geo, plane_map_mat1);
-    var plane_map_m2 = new THREE.Mesh(plane_map_geo, plane_map_mat2);
-    var plane_map_m3 = new THREE.Mesh(plane_map_geo, plane_map_mat3);
-    var plane_map_m4 = new THREE.Mesh(plane_map_geo, plane_map_mat4);
-    var plane_map_m5 = new THREE.Mesh(plane_map_geo, plane_map_mat5);
-    var plane_map_m6 = new THREE.Mesh(plane_map_geo, plane_map_mat6);
-    var plane_map_m7 = new THREE.Mesh(plane_map_geo, plane_map_mat7);
-    var plane_map_m8 = new THREE.Mesh(plane_map_geo, plane_map_mat8);
-    var plane_map_m9 = new THREE.Mesh(plane_map_geo, plane_map_mat9);
-    var plane_map_m10 = new THREE.Mesh(plane_map_geo, plane_map_mat10);
-    var plane_map_m11 = new THREE.Mesh(plane_map_geo, plane_map_mat11);
-    var plane_map_m12 = new THREE.Mesh(plane_map_geo, plane_map_mat12);
+    //The hard part ==> Resetting to correct coords
+    var map_lal_scale = 2220 / 1680  //Coordinate differential => (based of earlier testing with zoom L14) + 400x400 area  (lat / long)
+    //                                      // THIS * LONG = LAT
+    var grid_scale = 1689 / 160;//1;
 
+    var complete_refresh_count = 1000;
 
-    ///// LOCATION Y is top, x is accross z is to the screen(up zoom);
-    
-
-    plane_map_m1.position.set(0+mxo,0+myo,5);
-    plane_map_m2.position.set(40+mxo,0+myo,5);
-    plane_map_m3.position.set(80+mxo,0+myo,5);
-    plane_map_m4.position.set(120+mxo,0+myo,5);
-    plane_map_m5.position.set(0+mxo,40+myo,5);
-    plane_map_m6.position.set(40+mxo,40+myo,5);
-    plane_map_m7.position.set(80+mxo,40+myo,5);
-    plane_map_m8.position.set(120+mxo,40+myo,5);
-    plane_map_m9.position.set(0+mxo,80+myo,5);
-    plane_map_m10.position.set(40+mxo,80+myo,5);
-    plane_map_m11.position.set(80+mxo,80+myo,5);
-    plane_map_m12.position.set(120+mxo,80+myo,5);
-
-
-    scene.add(plane_map_m1);
-    scene.add(plane_map_m2);
-    scene.add(plane_map_m3);
-    scene.add(plane_map_m4);
-    scene.add(plane_map_m5);
-    scene.add(plane_map_m6);
-    scene.add(plane_map_m7);
-    scene.add(plane_map_m8);
-    scene.add(plane_map_m9);
-    scene.add(plane_map_m10);
-    scene.add(plane_map_m11);
-    scene.add(plane_map_m12);
-    
-    **/
-
-    //New better approach
-
-    //Max pixel retrievable is 640x640 at SCALE of 2
-
-    //New Large Map with auto-loaded smart zoom stuff
-
-    var plane_map_geo = new THREE.PlaneGeometry(160,160); //Can handle zooms up to 3x => more than enough
-    // 3x zoom level data load //movement to point where reset + request
-    var plane_map_z1 = THREE.ImageUtils.loadTexture(map_large(CURR_X,CURR_Y,11,maptype));
-    var plane_map_z2 = THREE.ImageUtils.loadTexture(map_large(CURR_X,CURR_Y,15,maptype));
-    var plane_map_z3 = THREE.ImageUtils.loadTexture(map_large(CURR_X,CURR_Y,17,maptype));
-
-    var plane_map_mat1 = new THREE.MeshBasicMaterial({map: plane_map_z1});
-    var plane_map_mat2 = new THREE.MeshBasicMaterial({map: plane_map_z2});
-    var plane_map_mat3 = new THREE.MeshBasicMaterial({map: plane_map_z3});
-
-    var plane_map_mesh = new THREE.Mesh(plane_map_geo, plane_map_mat2);
-
-    plane_map_mesh.position.set(-10,-10,5);//(-75,-50,5)
-
-    scene.add(plane_map_mesh)
-
-
-    //TODO scaling zoom functionality  \/
-
-    var old_zoom = -12345;
     function map_update() {
+        var maxX = maxX_tile();
+        var maxY = maxY_tile();
+        var minX = minX_tile();
+        var minY = minY_tile();
+
+        if(maxX > 128) {
+            wrapTiles(true,true);
+            movetilemins(-1,0,tile_zoom);
+            //alert("wrap");
+        }
+        if(maxY > 128) {
+            wrapTiles(false,true);
+            movetilemins(0,1,tile_zoom);
+            //alert("wrap");
+        }
+        if(minX < -128) {
+            wrapTiles(true,false);
+            movetilemins(1,0,tile_zoom);
+           //alert("wrap");
+        }
+        if(minY < -128) {
+            wrapTiles(false,false);
+            movetilemins(0,-1,tile_zoom);
+            //alert("wrap");
+        }
+        handleRemaps();
+        //
+
+        /**    //DISABLED
+        complete_refresh_count --;
+        if(complete_refresh_count < 1) {
+            complete_refresh_count = 1000;
+            requestAll(); //Complete occasional refresh to handle errors
+        }
+        **/
 
     }
 
-    function zoom_update() {
-        if(old_zoom == zoom_level) { //Change - DO SOMETHING
+    
+
+    function unlock_movement() {
+            //Reset movements
+            keys[87] = false;
+            keys[65] = false;
+            keys[83] = false;
+            keys[68] = false;
+    }
+   
+    var zoom_level = 25; //0 -> 100
+    var old_zoom = 0;
 
 
+    function zoom_update() {  //60 => 120 (scale / 75) scale values per location
+        if(old_zoom != zoom_level) { //Change - DO SOMETHING
 
+                               //TODO READD ONCE DISTNCES CALCULATED AND ADD SMART PRE-CACHING
+            //Movement
+            if(zoom_level > 99) {
+                //ZOOM IN
+                if(tile_zoom  < 15) { 
+                    tile_zoom ++;
+                    zoom_level = 3;
+                    //OFFSETS    //OVERALL NEGATIVE MOVEMENT
+                    var xD = minX_tile();//(minX_tile() - maxX_tile())/2;
+                    var yD = minY_tile();//(minY_tile() - minY_tile())/2; //Applicable to tweaking
 
+                    //
+                    requestAll();
+                    moveTiles(xD,yD);
+                }
+            }else if(zoom_level < 1) {
+                //ZOOM OUT
+                if(tile_zoom > 5) {
+                    tile_zoom --;
+                    zoom_level = 98;
+                    //OFFSETS    //OVERALL NEGATIVE MOVEMENT
+                    var xD = minX_tile();//(minX_tile() - maxX_tile())/2;
+                    var yD = minY_tile();//(minY_tile() - minY_tile())/2; //Applicable to tweaking
+
+                    //
+                    requestAll();
+                    moveTiles(xD,yD);
+                }
+            }
+
+            //Lazy Test Zoom without image switching
+            var dat = 0.75+((zoom_level / 100)*0.75);    ///REDONE FOR DIST DIFFERENTIAL TESETING
+            scaleTiles(dat);
+            //alert(dat);  
+
+ 
             old_zoom = zoom_level;
         }else {
             //   #NADA
@@ -267,6 +503,8 @@
 		requestAnimationFrame( render );
 
         zoom_update();
+       // devug disabled
+        map_update();
 
 		renderer.render(scene, camera);
 	};
@@ -280,32 +518,43 @@ function inputLoop() {
     if(wheel_delta == 1) {
         wheel_delta = 0;
         //DO STUFF
-        zoom_level++;
+        zoom_level+= 2;
         if(zoom_level > 100) {zoom_level = 100}
     }
     if(wheel_delta == -1) {
         wheel_delta = 0;
         //DO STUFF
-        zoom_level--;
+        zoom_level-= 2;
         if(zoom_level < 0) {zoom_level = 0;}
     }
     //MOVEMENT STUFF - HANDLE MOVEMENT AND IMAGE RESET CALLS
     if(keys[87]) { //W
-        camera.position.y += 0.2;
+        //camera.position.y += 0.3;
+        moveTiles(0,-0.3);
     }
     //
     if(keys[65]) { //A
-        camera.position.x -= 0.2;
+        //camera.position.x -= 0.3;
+        moveTiles(0.3,0);
     }
     //
     if(keys[83]) { //S
-        camera.position.y -= 0.2;
+        //camera.position.y -= 0.3;
+        moveTiles(0,0.3);
     }
     //
     if(keys[68]) { //D
-        camera.position.x += 0.2;
+        //camera.position.x += 0.3;
+        moveTiles(-0.3,0);
     }
 
+
+    /**
+    keys[87] = false;
+    keys[65] = false;
+    keys[83] = false;
+    keys[68] = false;
+    **/
 
 }
 
@@ -314,9 +563,9 @@ var wheel_delta = 0;
 function wheel_mouse(e) {
     wheel_delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
 }
-window.addEventListener("mousewheel", wheel_mouse   , false); //TODO
+window.addEventListener("mousewheel", wheel_mouse, false); //TODO
 
-var keys = [];
+
 
 setInterval(inputLoop,34);
 
@@ -338,3 +587,26 @@ function key_up(e) {
 }
 
 </script>
+
+
+<script>   //Overlay util
+        
+        //Handles all overlay-stuff
+
+
+
+
+</script>
+
+<script> //Normal/Tube view modes
+
+
+
+
+</script>
+
+
+
+
+
+

@@ -15,7 +15,7 @@ import com.google.gson.stream.JsonReader;
 public class BoroughGen {
 
 	private BufferedImage image;
-	private HashMap<Integer, String> boroughs;
+	public HashMap<Integer, String> boroughs;
 	public int[][] map;
 
 	public BoroughGen() {

@@ -22,7 +22,7 @@ public class CityVisServer {
 			gen = new BoroughGen();
 			if (args.length > 1 && args[1].equalsIgnoreCase("boroughmap")) {
 				JSONConverter.parseArray(gen.map);
-			} else if (args.length == 2){
+			} else if (args.length > 1 && args[1].equalsIgnoreCase("debug")) {
 				layers();
 				JSONConverter.parseArray(layers.get("boroughs").getData());
 				WardGen wards = new WardGen();

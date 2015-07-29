@@ -28,7 +28,7 @@ public class PriceGen {
 	
 	private int find(String b) {
 		try {
-			XSSFWorkbook workbook = new XSSFWorkbook(new File("HousePrices.xlsx"));
+			XSSFWorkbook workbook = new XSSFWorkbook(new File(GenUtil.absolutePath + "HousePrices.xlsx"));
 			XSSFSheet sheet = workbook.getSheet("Sheet1");
 			Iterator<Row> rowIterator = sheet.iterator();
 			while (rowIterator.hasNext()) {

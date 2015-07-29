@@ -30,7 +30,7 @@ public class CrimeGen {
 	private int find(String ward) {
 		XSSFWorkbook workbook;
 		try {
-			workbook = new XSSFWorkbook(new File("CrimeData.xlsx"));
+			workbook = new XSSFWorkbook(new File(GenUtil.absolutePath + "CrimeData.xlsx"));
 			XSSFSheet sheet = workbook.getSheet("Sheet1");
 			Iterator<Row> rowIterator = sheet.iterator();
 			while (rowIterator.hasNext()) {

@@ -6,7 +6,7 @@ import java.util.List;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 
-public class Parser {
+public class JSONConverter {
 	public static String parseArray(int[][] array) {
 		Gson gson = new Gson();
 		List<String> parent = new ArrayList<String>();

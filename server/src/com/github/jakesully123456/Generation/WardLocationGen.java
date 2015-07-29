@@ -76,7 +76,7 @@ public class WardLocationGen {
 	
 	private String getValidText(String line) {
 		for (int i = 0; i < line.length(); i ++) {
-			if (!Character.isLetter(line.charAt(i)) && line.charAt(i) != ' ' && line.charAt(i) != '\t') {
+			if (!Character.isLetter(line.charAt(i)) && line.charAt(i) != ' ' && line.charAt(i) != '\t' && line.charAt(i) != 39 && line.charAt(i) != ',') {
 				String sub = line.substring(0, i-1);
 				return sub;
 			}

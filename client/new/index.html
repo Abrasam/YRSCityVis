@@ -76,8 +76,8 @@
         this.material = new THREE.MeshBasicMaterial({map: this.texture});
         this.mesh = new THREE.Mesh(this.geom, this.material);
         scene.add(this.mesh);
-        this.x = (xv * 32) - 100;
-        this.y = (yv * 32) - 100;
+        this.x = (xv * 32) - 90;//100;
+        this.y = (yv * 32) - 90;//100;
         this.scale_v = 1;
         this.remap = false;
         this.mesh.position.set(this.x,this.y,5);
@@ -417,12 +417,12 @@
             movetilemins(0,1,tile_zoom);
             //alert("wrap");
         }
-        if(minX < -160) {
+        if(minX < -128) {
             wrapTiles(true,false);
             movetilemins(1,0,tile_zoom);
            //alert("wrap");
         }
-        if(minY < -160) {
+        if(minY < -128) {
             wrapTiles(false,false);
             movetilemins(0,-1,tile_zoom);
             //alert("wrap");
@@ -461,23 +461,29 @@
             //Movement
             if(zoom_level > 99) {
                 //ZOOM IN
-                if(tile_zoom  < 15) {
+                if(tile_zoom  < 15) { 
                     tile_zoom ++;
                     zoom_level = 3;
-                    //OFFSETS
+                    //OFFSETS    //OVERALL NEGATIVE MOVEMENT
+                    var xD = minX_tile();//(minX_tile() - maxX_tile())/2;
+                    var yD = minY_tile();//(minY_tile() - minY_tile())/2; //Applicable to tweaking
 
                     //
                     requestAll();
+                    moveTiles(xD,yD);
                 }
             }else if(zoom_level < 1) {
                 //ZOOM OUT
                 if(tile_zoom > 5) {
                     tile_zoom --;
                     zoom_level = 98;
-                    //OFFSETS
+                    //OFFSETS    //OVERALL NEGATIVE MOVEMENT
+                    var xD = minX_tile();//(minX_tile() - maxX_tile())/2;
+                    var yD = minY_tile();//(minY_tile() - minY_tile())/2; //Applicable to tweaking
 
                     //
                     requestAll();
+                    moveTiles(xD,yD);
                 }
             }
 

@@ -510,11 +510,12 @@
 
 	var render = function () {
 		requestAnimationFrame( render );
-
-        zoom_update();
-       // devug disabled
-        map_update();
-
+        if(!isTube) {
+            zoom_update();
+            map_update();
+        }else {
+            tube_update();
+        }
 		renderer.render(scene, camera);
 	};
 
@@ -602,18 +603,55 @@ function key_up(e) {
         
         //Handles all overlay-stuff
 
+        var isTube = false;
+        function tube_update() {
 
+        }
 
+        function enable_tube() {
+
+        }
+
+        function disable_tube() {
+
+        }
 
 </script>
 
 <script> //Normal/Tube view modes
 
-var gr_c1 = -1957.488943;
-var gr_c2 = 38726.891959;
+//for conversion to + from mapgrid to lond_grid
+
+var gr_c1 = -1957.488943;  //Size of one tile at default zoom 9
+var gr_c2 = 38726.891959;  //255 * 170   //x then y
 //
 var gr_c11 = 48697.99987;
 var gr_c12 = 79948.8762;
+
+var d_x = tile_x_min;
+var d_y = tile_y_min;
+/////
+var d1_x = (gr_c11 - gr_c1) /Math.pow(2,7);
+var d1_y = (gr_c12 - gr_c2) /Math.pow(2,7); //LAL per 1 unit    map*d1x = long /// long /dx1
+
+
+function tileTOlong(x) 
+    return gr_c1 + ((x - d1_x)/d_x);
+}
+
+function tileTOgrlat(y) { //UP IS NEGATIVE
+    return gr_c2 - ((y - d1_y)/d_y);
+}
+/////
+function latTOtile(y) {   
+    var v = y - gr_c2;
+    return d_y - (v / d_y);
+}                      
+
+function longTOtile(x) {
+    var v = x - gr_c1;
+    return d_x - (v / d_x);
+}
 
 
 </script>

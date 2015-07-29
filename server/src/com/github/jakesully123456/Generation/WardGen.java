@@ -18,7 +18,7 @@ public class WardGen {
 		wards = new ArrayList<String>();
 		FileInputStream file;
 		try {
-			file = new FileInputStream(new File("CrimeData.xlsx"));
+			file = new FileInputStream(new File(GenUtil.absolutePath + "CrimeData.xlsx"));
 			XSSFWorkbook wb = new XSSFWorkbook(file);
 			XSSFSheet sheet = wb.getSheet("Sheet1");
 			Iterator<Row> rowIterator = sheet.iterator();

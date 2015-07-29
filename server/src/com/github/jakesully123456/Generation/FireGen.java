@@ -29,7 +29,7 @@ public class FireGen {
 	
 	private int find(String b) {
 		try {
-			XSSFWorkbook workbook = new XSSFWorkbook(new File("FireData.xlsx"));
+			XSSFWorkbook workbook = new XSSFWorkbook(new File(GenUtil.absolutePath + "FireData.xlsx"));
 			XSSFSheet sheet = workbook.getSheet("Sheet1");
 			Iterator<Row> rowIterator = sheet.iterator();
 			while (rowIterator.hasNext()) {

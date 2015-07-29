@@ -3,6 +3,7 @@ package com.github.jakesully123456.Generation;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -21,7 +22,7 @@ public class BoroughGen {
 	public BoroughGen() {
 		boroughs = new HashMap<Integer, String>();
 		try {
-			image = ImageIO.read(new File("boroughs.png"));
+			image = ImageIO.read(new File(GenUtil.absolutePath + "boroughs.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -31,8 +32,10 @@ public class BoroughGen {
 	}
 
 	private void fill() {
+		JsonReader reader;
 		try {
-			JsonReader reader = new JsonReader(new FileReader("boroughs.json"));
+			reader = new JsonReader(new FileReader(GenUtil.absolutePath + "boroughs.json"));
+
 			reader.setLenient(true);
 			reader.beginObject();
 			while (reader.hasNext()) {
@@ -46,7 +49,9 @@ public class BoroughGen {
 			}
 			reader.endObject();
 			reader.close();
-		} catch (Exception e) {
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -54,7 +59,7 @@ public class BoroughGen {
 	private void readImage() {
 		FileWriter writer = null;
 		try {
-			writer = new FileWriter(new File("boroughs.txt"));
+			writer = new FileWriter(new File(GenUtil.absolutePath + "boroughs.txt"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

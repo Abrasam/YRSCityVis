@@ -17,7 +17,7 @@ public class WardLocationGen {
 		items = new HashMap<String, String>();
 		coords = new HashMap<String, List<Double>>();
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader(new File("Wards.txt")));
+			BufferedReader reader = new BufferedReader(new FileReader(new File(GenUtil.absolutePath + "Wards.txt")));
 			while (true) {
 				String line = reader.readLine();
 				if (line == null) {

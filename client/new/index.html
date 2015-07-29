@@ -1,8 +1,44 @@
 <script src="three.min.js"></script>
+<script src="jquery-2.1.4.min.js"></script>
 <script src="key.txt" type="textfile" id="mapkey"></script>
 
 
+<script>    //Server connection + communication code
 
+    function decodeJSON(str) {
+        return JSON.parse(str);
+    }
+
+    var last_request = null;
+    var json_p_request = null;
+
+    var handle_f_default = function(v) {
+        last_request = v;
+        json_p_request = decodeJSON(v);
+        relay_f();
+    }
+
+    var handle_f = function(v) {handle_f_default(v);} //DEFUALT RELAY
+
+    var relay_f = function(v) {
+        //    #NADA
+    }
+
+    function recievePHP(handle_func) {
+        handle_f = handle_func;
+        $.get('http://www.yoursite.com/test_output.php', function(data) {handle_f(data);});
+    }
+
+    function relcvePHP(rel_f) {
+        handle_f = handle_f_default;
+        relay_f = rel_f;
+        $.get('http://www.yoursite.com/test_output.php', function(data) {relay_f(data);});
+    }
+
+    //Base handling functions
+
+
+</script>
 
 
 
@@ -63,6 +99,15 @@
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(85, window.innerWidth/window.innerHeight, 0.1, 1000 );
     var pointLight = new THREE.PointLight(0xFFFFFF);
+
+</script>
+
+<script> //COBBLED MAPBOX GRID TO OUR GRID CONVERSION
+
+    //var_mb_
+
+
+
 
 </script>
 
@@ -501,11 +546,12 @@
 
 	var render = function () {
 		requestAnimationFrame( render );
-
-        zoom_update();
-       // devug disabled
-        map_update();
-
+        if(!isTube) {
+            zoom_update();
+            map_update();
+        }else {
+            tube_update();
+        }
 		renderer.render(scene, camera);
 	};
 
@@ -593,14 +639,72 @@ function key_up(e) {
         
         //Handles all overlay-stuff
 
+        function tube_30suWSS() {
+            if(isTube) {
+                if(!wasTube) {
+                    enable_tube();
+                    wasTube = true;
+                }
+            }else {
+                if(wasTube) {
+                    disable_tube();
+                    wasTube = false;
+                }
+            }
+        }
 
+        var wasTube = false;
+        var isTube = false;
+        function tube_update() {
 
+        }
+
+        function enable_tube() {
+            //TODO hide eventhing - show tube
+
+        }
+
+        function disable_tube() {
+            //TODO hide tube - show ALL DA REST
+
+        }
 
 </script>
 
 <script> //Normal/Tube view modes
 
+//for conversion to + from mapgrid to lond_grid
 
+var gr_c1 = -1957.488943;  //Size of one tile at default zoom 9
+var gr_c2 = 38726.891959;  //255 * 170   //x then y
+//
+var gr_c11 = 48697.99987;
+var gr_c12 = 79948.8762;
+
+var d_x = tile_x_min;
+var d_y = tile_y_min;
+/////
+var d1_x = (gr_c11 - gr_c1) /Math.pow(2,7);
+var d1_y = (gr_c12 - gr_c2) /Math.pow(2,7); //LAL per 1 unit    map*d1x = long /// long /dx1
+
+
+function tileTOlong(x) 
+    return gr_c1 + ((x - d1_x)/d_x);
+}
+
+function tileTOgrlat(y) { //UP IS NEGATIVE
+    return gr_c2 - ((y - d1_y)/d_y);
+}
+/////
+function latTOtile(y) {   
+    var v = y - gr_c2;
+    return d_y - (v / d_y);
+}                      
+
+function longTOtile(x) {
+    var v = x - gr_c1;
+    return d_x - (v / d_x);
+}
 
 
 </script>

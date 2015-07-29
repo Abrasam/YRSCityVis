@@ -32,6 +32,6 @@ public class CityVisServer {
 	}
 	
 	private static void layers() {
-		layers.put("boroughs", new Layer("boroughs", 500, 500, gen.map));
+		layers.put("boroughs", new Layer("boroughs", gen.map));
 	}
 }

@@ -27,9 +27,7 @@ public class CityVisServer {
 			} else if (args.length > 1 && args[1].equalsIgnoreCase("wardlocs")) {
 				System.out.println(JSONConverter.toString(new WardLocationGen(new WardGen()).coords));
 			} else if (args.length > 1 && args[1].equalsIgnoreCase("crimedata")) {
-				System.out.println("RIGHT ONE IS HERE!");
 				new CrimeGen(new WardGen());
-				System.out.println("If this prints. All is lost.");
 			} else if (args.length > 1 && args[1].equalsIgnoreCase("firedata")) {
 				gen = new BoroughGen();
 				System.out.println(JSONConverter.toString(new FireGen(gen)));

@@ -18,10 +18,7 @@ public class CrimeGen {
 	public HashMap<String, Integer> crimes;
 	
 	public CrimeGen(WardGen wardGen) {
-		System.out.println("RIGHT ONE IS HERE!");
 		crimes = new HashMap<String, Integer>();
-		find("Abbey");
-		System.out.println("Oh dear now...");
 		for (String ward : wardGen.wards()) {
 			int crimeCount = find(ward);
 			if (crimeCount != -1) {
@@ -30,8 +27,6 @@ public class CrimeGen {
 				System.out.println("ERROR - Special ward:" + ward);
 			}
 		}
-		System.out.println("FISHIES!");
-		System.out.println(crimes.toString());
 		System.out.println(JSONConverter.toString(crimes));
 	}
 	
@@ -57,7 +52,6 @@ public class CrimeGen {
 					}
 				}
 			}
-			System.out.println(crimes.toString());
 			workbook.close();
 		} catch (InvalidFormatException | IOException e) {
 			e.printStackTrace();

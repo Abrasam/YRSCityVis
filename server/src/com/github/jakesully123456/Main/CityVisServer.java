@@ -1,6 +1,9 @@
 package com.github.jakesully123456.Main;
 
-import java.util.Arrays;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashMap;
 
 import com.github.jakesully123456.Generation.BoroughGen;
@@ -18,7 +21,6 @@ public class CityVisServer {
 	private static BoroughGen gen;
 
 	public static void main(String[] args) {
-		System.out.println(Arrays.asList(args));
 		if (args.length > 0) {
 			GenUtil.setAbsolutePath(args[0]);
 			if (args.length > 1 && args[1].equalsIgnoreCase("boroughmap")) {
@@ -27,7 +29,24 @@ public class CityVisServer {
 			} else if (args.length > 1 && args[1].equalsIgnoreCase("wardlocs")) {
 				System.out.println(JSONConverter.toString(new WardLocationGen(new WardGen()).coords));
 			} else if (args.length > 1 && args[1].equalsIgnoreCase("crimedata")) {
-				new CrimeGen(new WardGen());
+				try {
+					BufferedReader fileRead = new BufferedReader(new FileReader(GenUtil.absolutePath + "files.txt"));
+					String str = fileRead.readLine();
+					System.out.println(str);
+					fileRead.close();
+				} catch (IOException e) {
+					System.out.println("Nada documentos!");
+					e.printStackTrace();
+				}
+				
+			} else if ((args.length > 1 && args[1].equalsIgnoreCase("updatecrimedata"))) {
+				try {
+					PrintWriter writer = new PrintWriter(GenUtil.absolutePath + "files.txt");
+					writer.println(JSONConverter.toString(new CrimeGen(new WardGen()).crimes));
+					writer.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			} else if (args.length > 1 && args[1].equalsIgnoreCase("firedata")) {
 				gen = new BoroughGen();
 				System.out.println(JSONConverter.toString(new FireGen(gen)));

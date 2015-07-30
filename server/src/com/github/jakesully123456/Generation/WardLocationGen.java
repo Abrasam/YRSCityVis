@@ -48,7 +48,6 @@ public class WardLocationGen {
 					System.out.println("MISSING: " + ward);
 				}
 			}
-			System.out.println(items.toString());
 			reader.close();
 			for (String item : items.keySet()) {
 				coords.put(item, parse(items.get(item), item));

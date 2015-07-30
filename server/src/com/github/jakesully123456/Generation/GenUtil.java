@@ -2,6 +2,12 @@ package com.github.jakesully123456.Generation;
 
 public class GenUtil {
 	
+	/*
+	 * 
+	 * This is simply used to convert lat to the grid and long to the grid. It is also used for the absolute path which is given on run.
+	 * 
+	 */
+	
 	public static String absolutePath;
 	
     public static final double data_ax_v = 51.723685;

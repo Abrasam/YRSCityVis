@@ -740,7 +740,7 @@ var d1_x = (gr_c11 - gr_c1) /Math.pow(2,7);
 var d1_y = (gr_c12 - gr_c2) /Math.pow(2,7); //LAL per 1 unit    map*d1x = long /// long /dx1
 
 
-function tileTOlong(x) 
+function tileTOlong(x) {
     return gr_c1 + ((x - d1_x)/d_x);
 }
 
@@ -770,6 +770,7 @@ var ICON = function(lat,longi,str) {
     this.x = longTotile(longi);
     this.y = latTOtile(lat); //LAT IS UP LAT IS UP LAT IS UP
     ////////
+    this.geom = new THREE.PlaneGeometry(30,30);
     this.texture = THREE.ImageUtils.loadTexture(str);//'/earth.jpg');
     this.material = new THREE.MeshBasicMaterial({map: this.texture});
     this.mesh = new THREE.Mesh(this.geom, this.material);

@@ -149,14 +149,18 @@ function tileXtoRender(v) { //Tile coordinates to render ones
     return minX_tile() + (vq * diff * 32);
     **/
 
-    //Probably overthough but i am annoyed it never seems to work
+    //Probably overthought but i am annoyed it never seems to work
+
 
     var diff = Math.pow(2,16 - tile_zoom); // Decreases as zoom in =>1  //Increases as zoom out
     //var xBase = Math.floor(tile_x_min * diff);
     var xc_min = minX_tile();
-    var xc_max = maxX_tile(); // 6 long grid of tiles
-    var xdist = xc_max - xc_min;
-    var diff_tile = v - tile_x_min; //Amount of smaller tiles
+    var xc_max = maxX_tile()+32; // 6 long grid of tiles
+    var xdist = xc_max - xc_min; //COMES TO 192
+    var diff_tile = v - tile_x_min; //Amount of smaller tiles differential
+    var d_x_t_units = xdist / (1 *diff);        //Render coords per small tile; (yeah inefficient but :p)
+    //alert("xdist="+xdist+",difftile="+diff_tile+"dxtunits="+d_x_t_units); 
+    return xc_min + (diff_tile * d_x_t_units);
 }
 
 function tileYtoRender(v) {
@@ -166,10 +170,22 @@ function tileYtoRender(v) {
 
     return Math.round((v - tile_y_min) * diff * 32);
     **/
+    /**
     var z = 16 - tile_zoom;       ///9 -> 16
     var diff = Math.pow(2,0-z);//2^(0-z);  //Reduces as zoom increases
     var vq = v - tile_y_min;
     return minY_tile() - (vq * diff * 32);
+    **/
+
+
+    var diff = Math.pow(2,16 - tile_zoom); // Decreases as zoom in =>1  //Increases as zoom out
+    //var xBase = Math.floor(tile_x_min * diff);
+    var yc_min = minY_tile();
+    var yc_max = maxY_tile()+32; // 6 long grid of tiles
+    var ydist = yc_max - yc_min;
+    var diff_tile = v - tile_y_min; //Amount of smaller tiles
+    var d_y_t_units = ydist / (1 *diff);        //Render coords per small tile; (yeah inefficient but :p)
+    return yc_min - (diff_tile * d_y_t_units);
 }
 
 
@@ -698,7 +714,7 @@ ICON.prototype.updatePOS = function(){              //BUG   =   on_zoom_out //x>
         this.mesh.position.x = xloc;
         this.mesh.position.y = yloc;
         //UNHIDE
-        //this.show();
+        this.show();
     }else {
         //HIDE
         this.mesh.position.x = xloc;

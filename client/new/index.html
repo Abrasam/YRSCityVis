@@ -453,6 +453,7 @@
         this.x = x;
         this.y = y;
         ////////
+        this.geom = = new THREE.PlaneGeometry(20,20);
         this.texture = THREE.ImageUtils.loadTexture(str);//'/earth.jpg');
         this.material = new THREE.MeshBasicMaterial({map: this.texture});
         this.mesh = new THREE.Mesh(this.geom, this.material);

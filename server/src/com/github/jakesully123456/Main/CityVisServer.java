@@ -21,13 +21,22 @@ public class CityVisServer {
 	private static BoroughGen gen;
 
 	public static void main(String[] args) {
+		/*
+		 * This section simply checks what the argument of the program is, and returns the correct information.
+		 * Our program works by running this in shell_exec() with php and echoing the prints.
+		 * 
+		 * I AM SO SO SO SO SO SO SORRY ABOUT THE STUPID IF STATEMENTS (I WILL CHANGE IT TO A SWITCH STATEMENT SOON - I PROMISE GUV!)
+		 */
 		if (args.length > 0) {
 			GenUtil.setAbsolutePath(args[0]);
+			//Returns a image generated borough map array.
 			if (args.length > 1 && args[1].equalsIgnoreCase("boroughmap")) {
 				gen = new BoroughGen();
 				JSONConverter.parseArray(gen.map);
+				//Returns a JSON formatted hashmap with all 602 London wards and their lat long coords.
 			} else if (args.length > 1 && args[1].equalsIgnoreCase("wardlocs")) {
 				System.out.println(JSONConverter.toString(new WardLocationGen(new WardGen()).coords));
+				//This returns a JSON formatted hashmap with all 602 london wards and their crime data of the last month.
 			} else if (args.length > 1 && args[1].equalsIgnoreCase("crimedata")) {
 				try {
 					BufferedReader fileRead = new BufferedReader(new FileReader(GenUtil.absolutePath + "files.txt"));
@@ -38,7 +47,7 @@ public class CityVisServer {
 					System.out.println("Nada documentos!");
 					e.printStackTrace();
 				}
-				
+				//This is called to update the crime data.
 			} else if ((args.length > 1 && args[1].equalsIgnoreCase("updatecrimedata"))) {
 				try {
 					PrintWriter writer = new PrintWriter(GenUtil.absolutePath + "files.txt");
@@ -47,14 +56,18 @@ public class CityVisServer {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
+				//This returns a hashmap of the boroughs to their fire count last month. Also in JSON format.
 			} else if (args.length > 1 && args[1].equalsIgnoreCase("firedata")) {
 				gen = new BoroughGen();
 				System.out.println(JSONConverter.toString(new FireGen(gen)));
+				//Returns the average price per borough. Also a JSON formatted hashmap.
 			} else if (args.length > 1 && args[1].equalsIgnoreCase("pricedata")) {
 				gen = new BoroughGen();
 				System.out.println(JSONConverter.toString(new PriceGen(gen)));
+				//Sends a JSON formatted list of each ward.
 			} else if (args.length > 1 && args[1].equalsIgnoreCase("wardlist")) {
 				System.out.println(JSONConverter.toString(new WardGen().wards()));
+				//Do not call unless you're me and are trying to fix bad things.
 			} else if (args.length > 1 && args[1].equalsIgnoreCase("debug")) {
 				gen = new BoroughGen();
 				layers();

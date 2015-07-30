@@ -2,7 +2,18 @@
 <script src="jquery-2.1.4.min.js"></script>
 <script src="key.txt" type="textfile" id="mapkey"></script>
 
- 
+<script>
+    //VARIABLED FOR TILE STUFF
+
+    var tile_x_min = 255 * Math.pow(2,7); //Tile request for minimum x/y  (based on coords, zoom level 16)
+    var tile_y_min = 170 * Math.pow(2,7); 
+    var tile_zoom = 9//9;
+
+
+</script>
+
+
+
 <script>    //Server connection + communication code
 
     function decodeJSON(str) {
@@ -47,7 +58,59 @@
 
 </script>
 
+<script> //Normal/Tube view modes
 
+//for conversion to + from mapgrid to lond_grid
+
+var gr_c1 = -1957.488943;  //Size of one tile at default zoom 9
+var gr_c2 = 38726.891959;  //255 * 170   //x then y
+//
+var gr_c11 = 48697.99987;
+var gr_c12 = 79948.8762;
+
+var d_x = tile_x_min;
+var d_y = tile_y_min;
+/////
+var d1_x = (gr_c11 - gr_c1) /Math.pow(2,7);
+var d1_y = (gr_c12 - gr_c2) /Math.pow(2,7); //LAL per 1 unit    map*d1x = long /// long /dx1
+
+
+function tileTOlong(x) {
+    return gr_c1 + ((x - d1_x)/d_x);
+}
+
+function tileTOgrlat(y) { //UP IS NEGATIVE
+    return gr_c2 - ((y - d1_y)/d_y);
+}
+/////
+function latTOtile(y) {   
+    var v = y - gr_c2;
+    return d_y - (v / d_y);
+}                      
+
+function longTOtile(x) {
+    var v = x - gr_c1;
+    return d_x - (v / d_x);
+}
+
+//Tile TO RENDER coords //YEAH I PROBABLY SHOULD UPDATE IT WITH THE REST
+
+function tileXtoRender(v) { //Tile coordinates to render ones
+    var z = 16 - tile_zoom;       ///9 -> 16
+    var diff = Math.pow(2,0-z);//2^(0-z);
+
+    return Math.round((v - tile_x_min) * diff * 32);
+}
+
+function tileYtoRender(v) {
+    var z = 16 - tile_zoom;       ///9 -> 16
+    var diff = Math.pow(2,0-z);//2^(0-z);
+
+    return Math.round((v - tile_y_min) * diff * 32);
+}
+
+
+</script>
 
 <script>
     
@@ -97,9 +160,7 @@
     var CURR_X = latTOgr(51.513615);    
     var CURR_Y = longTOgr(-0.114134);
 
-    var tile_x_min = 255 * Math.pow(2,7); //Tile request for minimum x/y  (based on coords, zoom level 16)
-    var tile_y_min = 170 * Math.pow(2,7); 
-    var tile_zoom = 9//9;
+    
 
 
     //  (CURR_X);
@@ -333,6 +394,9 @@
 
 </script>
 
+
+<!-- SCRIPT STUFF-->
+
 <html>
 	<head>
 		<title>Map Data</title>
@@ -548,8 +612,92 @@
         **/
 
     }
+    </script>
+    <script> //ICONS
 
-    
+var ICONS = [];
+var icon_count = 0;
+
+
+var ICON = function(lat,longi,str) {
+    this.x = Math.round(longTOtile(longi));
+    this.y = Math.round(latTOtile(lat)); //LAT IS UP LAT IS UP LAT IS UP
+    alert("NEW ICON");
+    alert(this.x);
+    alert(this.y);
+    ////////
+    this.geom = new THREE.PlaneGeometry(15,15);
+    this.texture = THREE.ImageUtils.loadTexture(str);//'/earth.jpg');
+    this.material = new THREE.MeshBasicMaterial({map: this.texture});
+    this.mesh = new THREE.Mesh(this.geom, this.material);
+    scene.add(this.mesh);
+    this.mesh.position.z = 10;
+    ICONS[ICONS.length]=this;
+    icon_count ++;
+    ///////
+    var xloc = tileXtoRender(this.x);
+    var yloc = tileYtoRender(this.y);
+    this.mesh.position.x = xloc;
+    this.mesh.position.y = yloc;
+
+}
+
+ICON.prototype.hide = function() {
+    this.material.transparent = true;
+    this.material.opacity = 0.0;
+}
+
+ICON.prototype.show = function() {
+    this.material.transparent = false;
+}
+
+ICON.prototype.updatePOS = function(){
+    //TODO
+
+    //WIL BE CALLED WITH THE REST OF STUFF
+    var xloc = minX_tile() + tileXtoRender(this.x);
+    var yloc = minY_tile() - tileYtoRender(this.y);
+    //alert("moved");
+    //alert(xloc);
+    //alert(yloc);
+    //ALSO PARTIAL SMART HIDING WHEN OUT OF RANGE
+    if(xloc > -200 && xloc > 200 && yloc > -200 && yloc < 200) {
+        this.mesh.position.x = xloc;
+        this.mesh.position.y = yloc;
+        //UNHIDE
+        //this.show();
+    }else {
+        //HIDE
+        this.mesh.position.x = xloc;
+        this.mesh.position.y = yloc;
+        //this.hide();
+    }
+
+}
+
+ICON.prototype.Rlocate = function() {
+    alert(this.mesh.position.x);
+    alert(this.mesh.position.y);
+}
+
+
+function handleIconRepos() {
+    for(var v = 0; v < icon_count; v++) {
+        ICONS[v].updatePOS(); //HANDLE
+    }
+}
+
+
+
+new ICON(CURR_X,CURR_Y,"earth.jpg");
+
+
+//var vphp = getPHP("request.php?arg=CAKE");
+
+
+
+</script>
+<script>
 
     function unlock_movement() {
             //Reset movements
@@ -613,6 +761,7 @@
         if(!isTube) {
             zoom_update();
             map_update();
+            handleIconRepos();
         }else {
             tube_update();
         }
@@ -740,116 +889,7 @@ function key_up(e) {
 
 </script>
 
-<script> //Normal/Tube view modes
-
-//for conversion to + from mapgrid to lond_grid
-
-var gr_c1 = -1957.488943;  //Size of one tile at default zoom 9
-var gr_c2 = 38726.891959;  //255 * 170   //x then y
-//
-var gr_c11 = 48697.99987;
-var gr_c12 = 79948.8762;
-
-var d_x = tile_x_min;
-var d_y = tile_y_min;
-/////
-var d1_x = (gr_c11 - gr_c1) /Math.pow(2,7);
-var d1_y = (gr_c12 - gr_c2) /Math.pow(2,7); //LAL per 1 unit    map*d1x = long /// long /dx1
-
-
-function tileTOlong(x) {
-    return gr_c1 + ((x - d1_x)/d_x);
-}
-
-function tileTOgrlat(y) { //UP IS NEGATIVE
-    return gr_c2 - ((y - d1_y)/d_y);
-}
-/////
-function latTOtile(y) {   
-    var v = y - gr_c2;
-    return d_y - (v / d_y);
-}                      
-
-function longTOtile(x) {
-    var v = x - gr_c1;
-    return d_x - (v / d_x);
-}
-
-//Tile TO RENDER coords //YEAH I PROBABLY SHOULD UPDATE IT WITH THE REST
-
-function tileXtoRender() { //Tile coordinates to render ones
-    var z = 16 - tile_zoom;       ///9 -> 16
-    var diff = Math.pow(2,0-z);//2^(0-z);
-    
-}
-
-function tileYtoRender() {
-    var z = 16 - tile_zoom;       ///9 -> 16
-    var diff = Math.pow(2,0-z);//2^(0-z);
-
-}
-
-
-</script>
-
-<script> //ICONS
-
-var ICONS = [];
-
-
-var ICON = function(lat,longi,str) {
-    this.x = Math.round(longTOtile(longi));
-    this.y = Math.round(latTOtile(lat)); //LAT IS UP LAT IS UP LAT IS UP
-    alert(this.x);
-    alert(this.y);
-    ////////
-    this.geom = new THREE.PlaneGeometry(30,30);
-    this.texture = THREE.ImageUtils.loadTexture(str);//'/earth.jpg');
-    this.material = new THREE.MeshBasicMaterial({map: this.texture});
-    this.mesh = new THREE.Mesh(this.geom, this.material);
-    scene.add(this.mesh);
-    this.mesh.position.set(this.x,this.y,7);
-    ICONS[ICONS.length]=this;
-}
-
-ICON.prototype.hide = function() {
-    this.material.transparent = true;
-    this.material.opacity = 0.0;
-}
-
-ICON.prototype.show = function() {
-    this.material.transparent = false;
-}
-
-ICON.prototype.updatePOS = function(){
-    //TODO
-
-    //WIL BE CALLED WITH THE REST OF STUFF
-    var xloc = tileXtoRender(this.x);
-    var yloc = tileYtoRender(this.y);
-    //ALSO PARTIAL SMART HIDING WHEN OUT OF RANGE
-    if(this.x > -200 && this.x > 200 && this.y > -200 && this.y < 200) {
-        this.mesh.position.x = xloc;
-        this.mesh.position.y = yloc;
-        //UNHIDE
-        this.show();
-    }else {
-        //HIDE
-        this.hide();
-    }
-
-}
 
 
 
-
-new ICON(CURR_X,CURR_Y,"earth.jpg");
-
-
-var vphp = getPHP("request.php?arg=CAKE");
-
-
-
-</script>
-<!-- SCRIPT STUFF-->
 

@@ -127,8 +127,8 @@
     var tile_geometry = new THREE.PlaneGeometry(32,32);
 
     var Tile = function(xv,yv) {
-        this.geom = tile_geometry;
-        this.texture = THREE.ImageUtils.loadTexture(getTile(x,y));//'/earth.jpg');
+        this.geom = tile_geometry;                  //WAS X Y ERROR
+        this.texture = THREE.ImageUtils.loadTexture(getTile(xv,yv));//'/earth.jpg');
         this.material = new THREE.MeshBasicMaterial({map: this.texture});
         this.mesh = new THREE.Mesh(this.geom, this.material);
         scene.add(this.mesh);
@@ -777,12 +777,16 @@ function longTOtile(x) {
 
 //Tile TO RENDER coords //YEAH I PROBABLY SHOULD UPDATE IT WITH THE REST
 
-function tileXtoRender() {
-
+function tileXtoRender() { //Tile coordinates to render ones
+    var z = 16 - tile_zoom;       ///9 -> 16
+    var diff = Math.pow(2,0-z);//2^(0-z);
+    
 }
 
 function tileYtoRender() {
-    
+    var z = 16 - tile_zoom;       ///9 -> 16
+    var diff = Math.pow(2,0-z);//2^(0-z);
+
 }
 
 
@@ -821,7 +825,23 @@ ICON.prototype.updatePOS = function(){
     //TODO
 
     //WIL BE CALLED WITH THE REST OF STUFF
+    var xloc = tileXtoRender(this.x);
+    var yloc = tileYtoRender(this.y);
+    //ALSO PARTIAL SMART HIDING WHEN OUT OF RANGE
+    if(this.x > -200 && this.x > 200 && this.y > -200 && this.y < 200) {
+        this.mesh.position.x = xloc;
+        this.mesh.position.y = yloc;
+        //UNHIDE
+        this.show();
+    }else {
+        //HIDE
+        this.hide();
+    }
+
 }
+
+
+
 
 new ICON(CURR_X,CURR_Y,"earth.jpg");
 

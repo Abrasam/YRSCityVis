@@ -476,9 +476,14 @@
 
     ///BUTTONS
     new BUTTON(-30,10,"images/Bus.png","button_bus");
-    new BUTTON(-10,-10,"images/Underground.png","button_tube");
-    new BUTTON(-20,-10,"images/Crime.png","button_bus");
+    new BUTTON(-22,10,"images/Underground.png","button_tube");
+    new BUTTON(-22,5,"images/Crime.png","button_bus");
     new BUTTON(-30,5,"images/Fire.png","button_fire");
+    new BUTTON(-30,-10,"images/HousePrice.png","button_price");
+    new BUTTON(-22,-10,"images/TabButton.png","button_tab");
+    new BUTTON(-22,-5,"images/Tourism.png","button_tourism");
+    new BUTTON(-30,-5,"images/Train.png","button_train");
+    new BUTTON(-30,0,"images/HousesForSale.png","button_sale");
 
     //END
 
@@ -770,6 +775,16 @@ function longTOtile(x) {
     return d_x - (v / d_x);
 }
 
+//Tile TO RENDER coords //YEAH I PROBABLY SHOULD UPDATE IT WITH THE REST
+
+function tileXtoRender() {
+
+}
+
+function tileYtoRender() {
+    
+}
+
 
 </script>
 
@@ -779,14 +794,16 @@ var ICONS = [];
 
 
 var ICON = function(lat,longi,str) {
-    this.x = longTotile(longi);
-    this.y = latTOtile(lat); //LAT IS UP LAT IS UP LAT IS UP
+    this.x = Math.round(longTOtile(longi));
+    this.y = Math.round(latTOtile(lat)); //LAT IS UP LAT IS UP LAT IS UP
+    alert(this.x);
+    alert(this.y);
     ////////
     this.geom = new THREE.PlaneGeometry(30,30);
     this.texture = THREE.ImageUtils.loadTexture(str);//'/earth.jpg');
     this.material = new THREE.MeshBasicMaterial({map: this.texture});
     this.mesh = new THREE.Mesh(this.geom, this.material);
-    scene.add(this);
+    scene.add(this.mesh);
     this.mesh.position.set(this.x,this.y,7);
     ICONS[ICONS.length]=this;
 }
@@ -800,6 +817,13 @@ ICON.prototype.show = function() {
     this.material.transparent = false;
 }
 
+ICON.prototype.updatePOS = function(){
+    //TODO
+
+    //WIL BE CALLED WITH THE REST OF STUFF
+}
+
+new ICON(CURR_X,CURR_Y,"earth.jpg");
 
 
 var vphp = getPHP("request.php?arg=CAKE");

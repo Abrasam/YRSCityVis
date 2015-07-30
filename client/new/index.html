@@ -2,7 +2,7 @@
 <script src="jquery-2.1.4.min.js"></script>
 <script src="key.txt" type="textfile" id="mapkey"></script>
 
-
+ 
 <script>    //Server connection + communication code
 
     function decodeJSON(str) {
@@ -22,10 +22,17 @@
 
     var relay_f = function(v) {
         //    #NADA
+
+
+        //LARGE HANDLER FUNCTION
     }
 
     function recievePHP(handle_func) {
         handle_f = handle_func;
+        $.get('http://www.yoursite.com/test_output.php', function(data) {handle_f(data);});
+    }
+
+    function getPHP() {
         $.get('http://www.yoursite.com/test_output.php', function(data) {handle_f(data);});
     }
 
@@ -153,6 +160,14 @@
         this.mesh.scale.set(this.scale_v,this.scale_v,this.scale_v);
     }
 
+    Tile.prototype.hide = function() {
+    this.material.transparent = true;
+    this.material.opacity = 0.0;
+    }
+
+    Tile.prototype.show = function() {
+        this.material.transparent = false;
+    }
 
 
     var TILES = []
@@ -420,9 +435,36 @@
     //// MENU
 
     var geo_menu = new THREE.PlaneGeometry(50,300);
-    var mat_blue = new THREE.MeshBasicMaterial( {color: 0x0000ff, side: THREE.DoubleSide} );
-    var plane_menu = new THREE.Mesh( geo_menu, mat_blue );
+    var menu_texture = THREE.ImageUtils.loadTexture("images/background.png");//'/earth.jpg');
+    var menu_material = new THREE.MeshBasicMaterial({map: menu_texture});
+    //var mat_blue = new THREE.MeshBasicMaterial( {color: 0x0000ff, side: THREE.DoubleSide} );
+    var plane_menu = new THREE.Mesh( geo_menu,menu_material );
     scene.add( plane_menu );
+
+    //BUTTONS
+
+    var BUTTONS=[];
+
+    var BUTTON = function(x,y,str,ident) {
+        this.x = x;
+        this.y = y;
+        ////////
+        this.texture = THREE.ImageUtils.loadTexture(str);//'/earth.jpg');
+        this.material = new THREE.MeshBasicMaterial({map: this.texture});
+        this.mesh = new THREE.Mesh(this.geom, this.material);
+        scene.add(this);
+        this.identifier = ident
+        this.mesh.position.set(this.x,this.y,7);
+        BUTTONS[BUTTONS.length]=this;
+        this.mesh.rotation.y = toRADS(2);//-(Math.PI / 2);
+        this.mesh.rotation.z = toRADS(0);
+       this.mesh.rotation.x = toRADS(2);
+    }
+
+
+    new BUTTON(10,10,"images/Bus.png","button");
+
+
     plane_menu.position.set(-50,-50,20);
     plane_menu.rotation.y = toRADS(2);//-(Math.PI / 2);
     plane_menu.rotation.z = toRADS(0);
@@ -661,12 +703,18 @@ function key_up(e) {
 
         function enable_tube() {
             //TODO hide eventhing - show tube
-
+            for(var v = 0; v < tile_count; v++) {
+                TILES[v].hide();
+            }
+            ////
         }
 
         function disable_tube() {
             //TODO hide tube - show ALL DA REST
-
+            for(var v = 0; v < tile_count; v++) {
+                TILES[v].hide();
+            }
+            ///
         }
 
 </script>
@@ -709,8 +757,38 @@ function longTOtile(x) {
 
 </script>
 
+<script> //ICONS
+
+var ICONS = [];
+
+
+var ICON = function(lat,longi,str) {
+    this.x = longTotile(longi);
+    this.y = latTOtile(lat); //LAT IS UP LAT IS UP LAT IS UP
+    ////////
+    this.texture = THREE.ImageUtils.loadTexture(str);//'/earth.jpg');
+    this.material = new THREE.MeshBasicMaterial({map: this.texture});
+    this.mesh = new THREE.Mesh(this.geom, this.material);
+    scene.add(this);
+    this.mesh.position.set(this.x,this.y,7);
+    ICONS[ICONS.length]=this;
+}
+
+ICON.prototype.hide = function() {
+    this.material.transparent = true;
+    this.material.opacity = 0.0;
+}
+
+ICON.prototype.show = function() {
+    this.material.transparent = false;
+}
 
 
 
+var vphp = getPHP("request.php?arg=CAKE");
 
+
+
+</script>
+<!-- SCRIPT STUFF-->
 

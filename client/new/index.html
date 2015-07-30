@@ -442,6 +442,7 @@
     var menu_texture = THREE.ImageUtils.loadTexture("images/background.png");//'/earth.jpg');
     var menu_material = new THREE.MeshBasicMaterial({map: menu_texture});
     //var mat_blue = new THREE.MeshBasicMaterial( {color: 0x0000ff, side: THREE.DoubleSide} );
+    menu_material.transparent = true;
     var plane_menu = new THREE.Mesh( geo_menu,menu_material );
     scene.add( plane_menu );
 
@@ -453,22 +454,33 @@
         this.x = x;
         this.y = y;
         ////////
-        this.geom = new THREE.PlaneGeometry(20,20);
+        this.geom = new THREE.PlaneGeometry(3,3);
         this.texture = THREE.ImageUtils.loadTexture(str);//'/earth.jpg');
         this.material = new THREE.MeshBasicMaterial({map: this.texture});
         this.mesh = new THREE.Mesh(this.geom, this.material);
+        this.defimg = str; //IDENT FOR DEFAULT IMAGE
         scene.add(this.mesh);
         this.identifier = ident
-        this.mesh.position.set(this.x,this.y,7);
+        this.mesh.position.set(this.x,this.y,25);
         BUTTONS[BUTTONS.length]=this;
         this.mesh.rotation.y = toRADS(2);//-(Math.PI / 2);
         this.mesh.rotation.z = toRADS(0);
-       this.mesh.rotation.x = toRADS(2);
+        this.mesh.rotation.x = toRADS(2);
+        this.material.transparent = true;
     }
 
+    BUTTON.prototype.p_img = function(str) {
+        this.texture_p = THREE.ImageUtils.loadTexture(str);
+        this.material_p = new THREE.MeshBasicMaterial({map: this.texture_p});
+    }
 
-    new BUTTON(10,10,"images/Bus.png","button");
+    ///BUTTONS
+    new BUTTON(-30,10,"images/Bus.png","button_bus");
+    new BUTTON(-10,-10,"images/Underground.png","button_tube");
+    new BUTTON(-20,-10,"images/Crime.png","button_bus");
+    new BUTTON(-30,5,"images/Fire.png","button_fire");
 
+    //END
 
     plane_menu.position.set(-50,-50,20);
     plane_menu.rotation.y = toRADS(2);//-(Math.PI / 2);

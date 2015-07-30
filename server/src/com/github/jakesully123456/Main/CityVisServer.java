@@ -1,5 +1,6 @@
 package com.github.jakesully123456.Main;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
 import com.github.jakesully123456.Generation.BoroughGen;
@@ -17,12 +18,28 @@ public class CityVisServer {
 	private static BoroughGen gen;
 
 	public static void main(String[] args) {
+		System.out.println(Arrays.asList(args));
 		if (args.length > 0) {
 			GenUtil.setAbsolutePath(args[0]);
-			gen = new BoroughGen();
 			if (args.length > 1 && args[1].equalsIgnoreCase("boroughmap")) {
+				gen = new BoroughGen();
 				JSONConverter.parseArray(gen.map);
+			} else if (args.length > 1 && args[1].equalsIgnoreCase("wardlocs")) {
+				System.out.println(JSONConverter.toString(new WardLocationGen(new WardGen()).coords));
+			} else if (args.length > 1 && args[1].equalsIgnoreCase("crimedata")) {
+				System.out.println("RIGHT ONE IS HERE!");
+				new CrimeGen(new WardGen());
+				System.out.println("If this prints. All is lost.");
+			} else if (args.length > 1 && args[1].equalsIgnoreCase("firedata")) {
+				gen = new BoroughGen();
+				System.out.println(JSONConverter.toString(new FireGen(gen)));
+			} else if (args.length > 1 && args[1].equalsIgnoreCase("pricedata")) {
+				gen = new BoroughGen();
+				System.out.println(JSONConverter.toString(new PriceGen(gen)));
+			} else if (args.length > 1 && args[1].equalsIgnoreCase("wardlist")) {
+				System.out.println(JSONConverter.toString(new WardGen().wards()));
 			} else if (args.length > 1 && args[1].equalsIgnoreCase("debug")) {
+				gen = new BoroughGen();
 				layers();
 				JSONConverter.parseArray(layers.get("boroughs").getData());
 				WardGen wards = new WardGen();

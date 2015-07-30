@@ -133,6 +133,35 @@ function longTOtile(x) {
 
 //Tile TO RENDER coords 
 
+function getMINtile() {
+    var tile = TILES[0];
+    for(var v = 0; v < tile_count; v++) {
+        if(TILES[v].x < tile.x) {
+            tile = TILES[v];
+        }
+        if(TILES[v].y < tile.y) {
+            tile = TILES[v];
+        }
+    }
+    return tile;
+}
+
+function getMAXtile() {
+    var tile = TILES[0];
+    for(var v = 0; v < tile_count; v++) {
+        if(TILES[v].x > tile.x) {
+            tile = TILES[v];
+        }
+        if(TILES[v].y > tile.y) {
+            tile = TILES[v];
+        }
+    }
+    return tile;
+}
+
+
+
+
 function tileXtoRender(v) { //Tile coordinates to render ones
     /**
     var z = 16 - tile_zoom;       ///9 -> 16
@@ -162,8 +191,9 @@ function tileXtoRender(v) { //Tile coordinates to render ones
     //alert("xdist="+xdist+",difftile="+diff_tile+"dxtunits="+d_x_t_units); 
     return xc_min + (diff_tile * d_x_t_units);
     **/
-    var min_tile = TILES[0];            
-    var max_tile = TILES[35];           
+    
+    var min_tile = getMINtile();            
+    var max_tile = getMAXtile();           
     var coord_x_min = min_tile.x;       //min_tile = tile render coord min
     var coord_x_max = max_tile.x + 32;  //max_tile = tile render coord max
     var z = 16 - tile_zoom;       ///9 -> 16 //Zoom ratio tweak
@@ -177,8 +207,9 @@ function tileXtoRender(v) { //Tile coordinates to render ones
     var cc_diff = xEnd - xBase;
     var cc_rat = diffi / cc_diff;
     //alert(v+","+xV+","+diffi);
-    //alert(v+","+)
+    alert(v+","+xV+","+xBase+","+diffi+","+cc_rat);
     return coord_x_min + (cc_rat * co_dif);
+    
 }
 
 
@@ -209,14 +240,15 @@ function tileYtoRender(v) {
     return  (diff_tile * d_y_t_units) - yc_min;
     **/
 
-    var min_tile = TILES[0];            
-    var max_tile = TILES[35];           
+    
+    var min_tile = getMINtile();          
+    var max_tile = getMAXtile();           
     var coord_y_min = min_tile.y;       //min_tile = tile render coord min
     var coord_y_max = max_tile.y + 32;  //max_tile = tile render coord max
     var z = 16 - tile_zoom;       ///9 -> 16 //Zoom ratio tweak
     var diff = Math.pow(2,0-z);//2^(0-z);    //Zoom to power of 2
-    var yBase = Math.floor((tile_y_min * diff) + 7);   //Tile coord x base reduced by zoom amount
-    var yEnd = Math.floor((tile_y_min  * diff)); //Tile coord x end reduced by zoom amount
+    var yBase = Math.floor((tile_y_min * diff));   //Tile coord x base reduced by zoom amount
+    var yEnd = Math.floor((tile_y_min  * diff) + 7); //Tile coord x end reduced by zoom amount
     //alert(v+","+xV+","+co_dif);
     var yV = (v * diff);
     var co_dif = coord_y_max - coord_y_min;
@@ -224,7 +256,8 @@ function tileYtoRender(v) {
     var cc_diff = yEnd - yBase;
     var cc_rat = diffi / cc_diff;
     //alert(v+","+xV+","+diffi);
-    return coord_y_max - (cc_rat * co_dif);
+    return coord_y_min - (cc_rat * co_dif);
+    
 }
 
 
@@ -782,7 +815,13 @@ function handleIconRepos() {
 //new ICON(CURR_X,CURR_Y,"earth.jpg");
 //new ICON(51.507712, -0.118921,"/images/Tourism.png");
 //new ICON(52.159634, -0.349748,"/images/Tourism.png");
-new ICON(51.49803955,-0.465443205,"/images/Fire.png");
+//new ICON(51.49803955,-0.465443205,"/images/Fire.png");
+
+//London square test
+new ICON(data_ax_v,data_ay_v,"/images/Fire.png");
+new ICON(data_ax_v,data_by_v,"/images/Fire.png");
+new ICON(data_bx_v,data_ay_v,"/images/Fire.png");
+new ICON(data_bx_v,data_by_v,"/images/Fire.png");
 
 
 //var vphp = getPHP("request.php?arg=CAKE");

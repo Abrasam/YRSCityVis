@@ -19,6 +19,12 @@ public class BoroughGen {
 	public HashMap<Integer, String> boroughs;
 	public int[][] map;
 
+	/*
+	 * The borough generator works by taking a 500x500 resolution image of the boroughs which
+	 * I have coloured so that each borough has a different RGB red value.
+	 * There are 33 shades of red and the red value determines the borough.
+	 * 
+	 */
 	public BoroughGen() {
 		boroughs = new HashMap<Integer, String>();
 		try {

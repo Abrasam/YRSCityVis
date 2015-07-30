@@ -17,6 +17,10 @@ public class CrimeGen {
 
 	public HashMap<String, Integer> crimes;
 	
+	/*
+	 * This works by iterating over a spreadsheet (which will eventually update) to get each ward's crime rate over the past month.
+	 * 
+	 */
 	public CrimeGen(WardGen wardGen) {
 		crimes = new HashMap<String, Integer>();
 		for (String ward : wardGen.wards()) {

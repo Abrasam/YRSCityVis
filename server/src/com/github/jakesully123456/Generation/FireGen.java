@@ -14,6 +14,13 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public class FireGen {
 
 	public HashMap<String, Integer> fires;
+	
+	/*
+	 * 
+	 * This code gets the fire rate for each borough.
+	 * 
+	 */
+	
 	public FireGen(BoroughGen bg) {
 		fires = new HashMap<String, Integer>();
 		for (String borough : bg.boroughs.values()) {

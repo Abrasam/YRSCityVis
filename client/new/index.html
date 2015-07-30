@@ -143,11 +143,27 @@ function getMINtile() {
             tile = TILES[v];
         }
     }
+    for(var v = 0; v < tile_count; v++) {
+        if(TILES[v].x < tile.x) {
+            tile = TILES[v];
+        }
+        if(TILES[v].y < tile.y) {
+            tile = TILES[v];
+        }
+    }
     return tile;
 }
 
 function getMAXtile() {
     var tile = TILES[0];
+    for(var v = 0; v < tile_count; v++) {
+        if(TILES[v].x > tile.x) {
+            tile = TILES[v];
+        }
+        if(TILES[v].y > tile.y) {
+            tile = TILES[v];
+        }
+    }
     for(var v = 0; v < tile_count; v++) {
         if(TILES[v].x > tile.x) {
             tile = TILES[v];
@@ -191,7 +207,7 @@ function tileXtoRender(v) { //Tile coordinates to render ones
     //alert("xdist="+xdist+",difftile="+diff_tile+"dxtunits="+d_x_t_units); 
     return xc_min + (diff_tile * d_x_t_units);
     **/
-    
+    /**
     var min_tile = getMINtile();            
     var max_tile = getMAXtile();           
     var coord_x_min = min_tile.x;       //min_tile = tile render coord min
@@ -208,8 +224,26 @@ function tileXtoRender(v) { //Tile coordinates to render ones
     var cc_rat = diffi / cc_diff;
     //alert(v+","+xV+","+diffi);
     alert(v+","+xV+","+xBase+","+diffi+","+cc_rat);
+
     return coord_x_min + (cc_rat * co_dif);
-    
+    **/
+
+    //NEW AND IMPROVED TILE BY TILE SYSTEM (THAT WILL PROBABLY SUFFER FROM THE SAME MAGIC)
+    var z = 16 - tile_zoom;       ///9 -> 16 //Zoom ratio tweak
+    var diff = Math.pow(2,0-z);//2^(0-z);    //Zoom to power of 2
+    var xv = (v * diff);
+    var xvl = Math.floor(xv);
+    var xvh = Math.ceil(xv);
+
+    var xbasetiles = (tile_x_min * diff);
+    for(var q = 0; q < tile_count; q++) {
+        var xrs = Math.round((TILES[q].x - minX_tile()) / 32);
+        if(Math.floor(xbasetiles + xrs) == xvl) {
+            //console.log("Found");
+            var xvf = (xv - xvl);
+            return TILES[q].x + (xvf * 32);
+        }
+    }
 }
 
 
@@ -240,7 +274,7 @@ function tileYtoRender(v) {
     return  (diff_tile * d_y_t_units) - yc_min;
     **/
 
-    
+    /**
     var min_tile = getMINtile();          
     var max_tile = getMAXtile();           
     var coord_y_min = min_tile.y;       //min_tile = tile render coord min
@@ -257,7 +291,25 @@ function tileYtoRender(v) {
     var cc_rat = diffi / cc_diff;
     //alert(v+","+xV+","+diffi);
     return coord_y_min - (cc_rat * co_dif);
-    
+    **/
+
+    //NEW AND IMPROVED TILE BY TILE SYSTEM (THAT WILL PROBABLY SUFFER FROM THE SAME MAGIC)
+    var z = 16 - tile_zoom;       ///9 -> 16 //Zoom ratio tweak
+    var diff = Math.pow(2,0-z);//2^(0-z);    //Zoom to power of 2
+    var yv = (v * diff);
+    var yvl = Math.floor(yv);
+    var yvh = Math.ceil(yv);
+
+    var ybasetiles = (tile_y_min * diff);
+    for(var q = 0; q < tile_count; q++) {
+        var yrs = Math.round((TILES[q].y - minY_tile()) / 32);
+        if(Math.floor(ybasetiles - yrs) == yvl) {
+            //console.log("Found");
+            var yvf = (yv - yvl);
+            return TILES[q].y - (yvf * 32);
+        }
+    }
+
 }
 
 
@@ -788,7 +840,7 @@ ICON.prototype.updatePOS = function(){              //BUG   =   on_zoom_out //x>
         this.mesh.position.x = xloc;
         this.mesh.position.y = yloc;
         //UNHIDE
-        this.show();
+        //this.show();
     }else {
         //HIDE
         this.mesh.position.x = xloc;

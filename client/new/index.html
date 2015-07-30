@@ -239,9 +239,12 @@ function tileXtoRender(v) { //Tile coordinates to render ones
     for(var q = 0; q < tile_count; q++) {
         var xrs = Math.round((TILES[q].x - minX_tile()) / 32);
         if(Math.floor(xbasetiles + xrs) == xvl) {
-            //console.log("Found");
+            console.log(xrs);
             var xvf = (xv - xvl);
-            return TILES[q].x + (xvf * 32);
+            //9=0,10=1,11=2
+            var silly_fix = tile_zoom - 9;
+            silly_fix *= 0.25;
+            return TILES[q].x + ((xvf + silly_fix) * 32);
         }
     }
 }
@@ -306,7 +309,10 @@ function tileYtoRender(v) {
         if(Math.floor(ybasetiles - yrs) == yvl) {
             //console.log("Found");
             var yvf = (yv - yvl);
-            return TILES[q].y - (yvf * 32);
+
+            var silly_fix = tile_zoom - 9;
+            silly_fix *= 0.25;
+            return TILES[q].y - ((yvf + silly_fix) * 32);
         }
     }
 

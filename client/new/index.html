@@ -60,6 +60,10 @@
     var traffic = false;
 
 
+    var wasTube = false;
+    var isTube = false;
+
+
     var data_ax_v = 51.723685;
     var data_ay_v = 0.426118;
     var data_bx_v = 51.238917;
@@ -452,7 +456,7 @@
         this.texture = THREE.ImageUtils.loadTexture(str);//'/earth.jpg');
         this.material = new THREE.MeshBasicMaterial({map: this.texture});
         this.mesh = new THREE.Mesh(this.geom, this.material);
-        scene.add(this);
+        scene.add(this.mesh);
         this.identifier = ident
         this.mesh.position.set(this.x,this.y,7);
         BUTTONS[BUTTONS.length]=this;
@@ -695,8 +699,7 @@ function key_up(e) {
             }
         }
 
-        var wasTube = false;
-        var isTube = false;
+        
         function tube_update() {
 
         }

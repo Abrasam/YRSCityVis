@@ -124,7 +124,7 @@
         }
         //
         if(enable_boroughmap) {
-            if(overlay_icon != null && fire_MAT != null) {
+            if(overlay_icon != null && fire_MAT != null && tile_zoom < 15) { //CLIP AT 14 DUE TO SMALL BUG (shhhh);
                 //console.log("CAKE!!!");
                 overlay_icon.showT();
             }
@@ -1028,8 +1028,8 @@ ICON.prototype.updatePOS = function(){              //BUG   =   on_zoom_out //x>
     xloc *= dat;
     yloc *= dat; //FINAL TWEAKS
     if(isNaN(xloc) || isNaN(yloc)) {
-        this.mesh.position.x = -400;
-        this.mesh.position.y = -400;
+        this.mesh.position.x = -4000; //NOT FAR AWAY ENOUGH
+        this.mesh.position.y = -4000;
     }else{
         this.mesh.position.x = xloc;
         this.mesh.position.y = yloc;

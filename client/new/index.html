@@ -125,6 +125,7 @@
         //
         if(enable_boroughmap) {
             if(overlay_icon != null && fire_MAT != null) {
+                //console.log("CAKE!!!");
                 overlay_icon.showT();
             }
             
@@ -213,6 +214,13 @@
         overlay_icon.material.opacity = 0.5;
         ///
         overlay_icon.default_scale = 2500;
+        ///
+        bor_MAT.opacity = 0.5;
+        fire_MAT.opacity = 0.5;
+        price_MAT.opacity = 0.5;   
+        bor_MAT.transparent = true;
+        fire_MAT.transparent = true;
+        price_MAT.transparent = true; 
     }
 
     loadWardsLIST();

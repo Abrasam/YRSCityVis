@@ -17,13 +17,14 @@
 <script>    //Server connection + communication code
 
     //Predownloaded JSON data
+    var wardlist = null;
     var wardlocs = null;
     var boroughmap = null;
     var crime_data = null;
     var price_data = null;
     var fire_data = null;
 
-    var requestPHP_S = "http://192.168.5.6";
+    var requestPHP_S = "http://jakeio.ddns.net";
 
     function decodeJSON(str) {
         return jQuery.parseJSON(str);
@@ -31,26 +32,46 @@
 
 
     //NOT EXPANDABLE _ WILL BE DONE LATER
+
+    function loadWardsLIST() {
+        $.get(requestPHP_S+'/index.php?wardlist', function(data) {handleWardLIST(data);});
+    }
+
+    function handleWardLIST(data) {
+        wardlist = decodeJSON(data);
+        loadWards();
+    }
+
+
     function loadWards() {
         $.get(requestPHP_S+'/index.php?wardlocs', function(data) {handleWard(data);});
     }
 
+    var WARDPINS = [];
+
     function handleWard(data) {
         wardlocs = decodeJSON(data);
         loadBorough();
+        return; //LOAD PINS DISABLED
+        for(var qq = 0; qq < wardlist.length; qq++) {
+            var wardn = wardlist[qq];
+            var iconqw = new ICON(wardlocs[wardn][0],wardlocs[wardn][1],"/images/pin.png");
+            WARDPINS[WARDPINS.length] = iconqw;
+        }
     }
 
     function loadBorough() {
-        $.get(requestPHP_S+'/index.php?boroughmap', function(data) {handleWard(data);});
+        $.get(requestPHP_S+'/index.php?boroughmap', function(data) {handleBorough(data);});
     }
 
     function handleBorough(data) {
         boroughmap = decodeJSON(data);
         loadCrime();
+        for(var qq1 = 0; qq1)
     }
 
     function loadCrime() {
-        $.get(requestPHP_S+'/index.php?crimedata', function(data) {handleWard(data);});
+        $.get(requestPHP_S+'/index.php?crimedata', function(data) {handleCrime(data);});
     }
 
     function handleCrime(data) {
@@ -59,7 +80,7 @@
     }
 
     function loadPrice() {
-        $.get(requestPHP_S+'/index.php?pricedata', function(data) {handleWard(data);});
+        $.get(requestPHP_S+'/index.php?pricedata', function(data) {handlePrice(data);});
     }
 
     function handlePrice(data) {
@@ -68,7 +89,7 @@
     }
 
     function loadFire() {
-        $.get(requestPHP_S+'/index.php?firedata', function(data) {handleWard(data);});
+        $.get(requestPHP_S+'/index.php?firedata', function(data) {handleFire(data);});
     }
 
     function handleFire(data) {
@@ -76,11 +97,7 @@
         console.log("Finished!  Data mining");
     }
 
-    //loadBorough();
-    //loadPrice();
-    //loadCrime();
-    loadWards();
-    //loadFire();
+    loadWardsLIST();
 
 
 

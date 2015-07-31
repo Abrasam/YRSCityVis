@@ -30,6 +30,10 @@
         return jQuery.parseJSON(str);
     }
 
+    //Variables for the buttons to toggle
+    var enable_wardpins = true;
+    var enable_boroughmap = true;
+
 
     //NOT EXPANDABLE _ WILL BE DONE LATER
 
@@ -52,15 +56,42 @@
     function handleWard(data) {
         wardlocs = decodeJSON(data);
         loadBorough();
-        //return; //LOAD PINS DISABLED
         for(var qq = 0; qq < wardlist.length; qq++) {
             var wardn = wardlist[qq];
             var iconqw = new ICON(wardlocs[wardn][0],wardlocs[wardn][1],"/images/pin.png");
+            iconqw.type = "wardicon";
             WARDPINS[WARDPINS.length] = iconqw;
         }
     }
 
     var BOROUGHPINS = [];
+
+    function UpdatePins() {
+        //ZOOM HIDE/SHOW
+        if(tile_zoom > 9 && enable_wardpins && !isTube) {
+            for(var q = 0; q < WARDPINS.length; q++) {
+                WARDPINS[q].show();
+            }
+            if(tile_zoom < 13) {
+                for(var q = 0; q < WARDPINS.length; q++) {
+                    WARDPINS[q].mesh.scale.x = 0.5;
+                    WARDPINS[q].mesh.scale.y = 0.5;
+                }
+            }else {
+                for(var q = 0; q < WARDPINS.length; q++) {
+                    WARDPINS[q].mesh.scale.x = 1;
+                    WARDPINS[q].mesh.scale.y = 1;
+                }
+            }
+        }else {
+            for(var q = 0; q < WARDPINS.length; q++) {
+                WARDPINS[q].hide();
+            }
+        }
+
+    }
+
+
 
     function loadBorough() {
         $.get(requestPHP_S+'/index.php?boroughmap', function(data) {handleBorough(data);});
@@ -69,9 +100,21 @@
     function handleBorough(data) {
         boroughmap = decodeJSON(data);
         loadCrime();
-        for(var qq1 = 0; qq1 < 1; qq1++) {
-
+        /**
+        for(var qq1 = 0; qq1 < boroughmap.length; qq1++) {
+            var sub = boroughmap[qq1];
+            for(var qq2 = 0; qq2 < boroughmap.length; qq2++) {
+                //TODO SOMETHING
+                var bicon = new ICON(0,0,"images/Boroughs.png");
+                BOROUGHPINS[BOROUGHPINS.length] = bicon;
+                bicon.x = gridTTileX(qq1*100);
+                bicon.y = gridTTileY(qq2*100);
+                bicon.num = sub[qq2];
+                //bicon.material = THREE.MeshBasicMaterial( {color: 0x0000ff, side: THREE.DoubleSide} );
+                //bicon.mesh.material = bicon.material;
+            }
         }
+        **/
     }
 
     function loadCrime() {
@@ -194,7 +237,13 @@ function longTOtile_v2(v) {
     return data_bx_v_tile + (gr * data_x_diff_u);
 }
 
-
+function gridTTileX(v) {
+    return data_bx_v_tile + (v * data_x_diff_u);
+}
+function gridTTileY(v) {
+    var qr = 50000 - v;
+    return data_ay_v_tile + (qr * data_y_diff_u);
+}
 
 
 
@@ -437,8 +486,8 @@ function tileYtoRender(v) {
     }
 
     Tile.prototype.hide = function() {
-    this.material.transparent = true;
-    this.material.opacity = 0.0;
+        this.material.transparent = true;
+        this.material.opacity = 0.0;
     }
 
     Tile.prototype.show = function() {
@@ -710,10 +759,25 @@ function tileYtoRender(v) {
     scene.add( plane_menu );
 
     //BUTTONS
+    var BUTTON_TILE = null;
+
+
+    function updateButtons() {
+        //Move the tiles icon into the correct location
+        var w_in = window.innerWidth;
+        var h_in = window.innerHeight;
+        //
+    }
 
     var BUTTONS=[];
     var BUTTON_x_offset = 0;
     var BUTTON_y_offset = 0;
+
+    //WINDOW SIZE FIXES
+    jQuery('body').on('fullScreenChange', function() { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); alert("CAKE!"); });
+
+    /////
+    var isOpen = false;
 
     var BUTTON = function(x,y,str,ident) {
         this.x = x;
@@ -746,7 +810,7 @@ function tileYtoRender(v) {
     new BUTTON(-22,5,"images/Crime.png","button_bus");
     new BUTTON(-30,5,"images/Fire.png","button_fire");
     new BUTTON(-30,-10,"images/HousePrice.png","button_price");
-    new BUTTON(-22,-10,"images/TabButton.png","button_tab");
+    BUTTON_TILE =  new BUTTON(-22,-10,"images/TabButton.png","button_tab");
     new BUTTON(-22,-5,"images/Tourism.png","button_tourism");
     new BUTTON(-30,-5,"images/Train.png","button_train");
     new BUTTON(-30,0,"images/HousesForSale.png","button_sale");
@@ -960,6 +1024,7 @@ function icon_update() {
 	var render = function () {
 		requestAnimationFrame( render );
         icon_update();
+        UpdatePins();
         if(!isTube) {
             zoom_update();
             map_update();

@@ -23,58 +23,64 @@
     var price_data = null;
     var fire_data = null;
 
+    var requestPHP_S = "http://192.168.5.6";
 
     function decodeJSON(str) {
-        return JSON.parse(str);
+        return jQuery.parseJSON(str);
     }
 
 
     //NOT EXPANDABLE _ WILL BE DONE LATER
     function loadWards() {
-        $.get('/index.php?wards', function(data) {handleWard(data);});
+        $.get(requestPHP_S+'/index.php?wardlocs', function(data) {handleWard(data);});
     }
 
     function handleWard(data) {
         wardlocs = decodeJSON(data);
+        loadBorough();
     }
 
     function loadBorough() {
-        $.get('/index.php?wards', function(data) {handleWard(data);});
+        $.get(requestPHP_S+'/index.php?boroughmap', function(data) {handleWard(data);});
     }
 
     function handleBorough(data) {
         boroughmap = decodeJSON(data);
+        loadCrime();
     }
 
     function loadCrime() {
-        $.get('/index.php?wards', function(data) {handleWard(data);});
+        $.get(requestPHP_S+'/index.php?crimedata', function(data) {handleWard(data);});
     }
 
     function handleCrime(data) {
         crime_data = decodeJSON(data);
+        loadPrice();
     }
 
     function loadPrice() {
-        $.get('/index.php?wards', function(data) {handleWard(data);});
+        $.get(requestPHP_S+'/index.php?pricedata', function(data) {handleWard(data);});
     }
 
     function handlePrice(data) {
         price_data = decodeJSON(data);
+        loadFire();
     }
 
     function loadFire() {
-        $.get('/index.php?wards', function(data) {handleWard(data);});
+        $.get(requestPHP_S+'/index.php?firedata', function(data) {handleWard(data);});
     }
 
     function handleFire(data) {
         fire_data = decodeJSON(data);
+        console.log("Finished!  Data mining");
     }
 
-    loadBorough();
-    loadPrice();
-    loadCrime();
+    //loadBorough();
+    //loadPrice();
+    //loadCrime();
     loadWards();
-    loadFire();
+    //loadFire();
 
 
 
@@ -369,8 +375,8 @@ function tileYtoRender(v) {
 
 <script> //New tile based system
     
-    var tile_geometry = new THREE.PlaneGeometry(32,32);
-
+    //var tile_geometry = new THREE.PlaneGeometry(32,32);
+    var tile_geometry = new THREE.PlaneBufferGeometry(32,32);
     var Tile = function(xv,yv) {
         this.geom = tile_geometry;                  //WAS X Y ERROR
         this.texture = THREE.ImageUtils.loadTexture(getTile(xv,yv));//'/earth.jpg');
@@ -692,7 +698,8 @@ function tileYtoRender(v) {
         this.x = x;
         this.y = y;
         ////////
-        this.geom = new THREE.PlaneGeometry(3,3);
+        //this.geom = new THREE.PlaneGeometry(3,3);
+        this.geom = new THREE.PlaneBufferGeometry(3,3);
         this.texture = THREE.ImageUtils.loadTexture(str);//'/earth.jpg');
         this.material = new THREE.MeshBasicMaterial({map: this.texture});
         this.mesh = new THREE.Mesh(this.geom, this.material);
@@ -840,6 +847,22 @@ function handleIconRepos() {
    }
 }
 
+
+
+
+
+</script>
+
+<script>
+
+
+function icon_update() {
+    //var resp = 
+
+
+
+
+}
 
 
 
@@ -1043,19 +1066,5 @@ function key_up(e) {
 </script>
 
 
-<script>
 
-
-function icon_update() {
-    //var resp = 
-
-
-
-
-}
-
-
-
-
-</script>
 

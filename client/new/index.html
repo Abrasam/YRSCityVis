@@ -64,7 +64,13 @@
         }
     }
 
-    var BOROUGHPINS = [];
+    var overlay-icon = null;
+    var bor_image = null;
+    var bor_MAT = null;
+    var fire_image = null;
+    var fire_MAT = null;
+    var price_image = null;
+    var price_MAT = null;
 
     function UpdatePins() {
         //ZOOM HIDE/SHOW
@@ -115,6 +121,10 @@
             }
         }
         **/
+        overlay-icon = new ICON(0,0,"images/Fire.png");
+        overlay-icon.x = gridTTileX(25000);
+        overlay-icon.y = gridTTileY(25000);
+        overlay-icon.default_scale = 1; //TODO fine tune tweaking
     }
 
     function loadCrime() {
@@ -142,6 +152,14 @@
     function handleFire(data) {
         fire_data = decodeJSON(data);
         console.log("Finished!  Data mining");
+
+        //LOAD DA IMAGES :D
+        bor_image = THREE.ImageUtils.loadTexture(requestPHP_S+"/");    //TODO add base string stuff
+        fire_image = THREE.ImageUtils.loadTexture(requestPHP_S+"/");
+        price_image = THREE.ImageUtils.loadTexture(requestPHP_S+"/");
+        bor_MAT = new THREE.MeshBasicMaterial({map: bor_image});
+        fire_MAT = new THREE.MeshBasicMaterial({map: fire_image});
+        price_MAT = new THREE.MeshBasicMaterial({map: price_image});
     }
 
     loadWardsLIST();

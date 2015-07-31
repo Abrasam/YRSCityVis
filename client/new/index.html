@@ -60,42 +60,57 @@
 
 <script> //Normal/Tube view modes
 
-//for conversion to + from mapgrid to lond_grid   //PROGRESS1=>9/255/170
+//Tweak new version for converting using grid coords as an intermediary
 
-/***    ///  #VERY BROKE  I HAVE NO BRAIN CODE
 
-var gr_c1 = -1957.488943;            //Size of one tile at default zoom 9    //#DELOG
-var gr_c2 = 38726.891959;            //255 * 170   //x then y
+/**
+var gr_c1_v2 = -1957.488943;            //Size of one tile at default zoom 9    //#DELOG
+var gr_c2_v2 = 38726.891959;            //255 * 170   //x then y
 //
-var gr_c11 = 48697.99987;
-var gr_c12 = 79948.8762;
+var gr_c11_v2 = 48697.99987;
+var gr_c12_v2 = 79948.8762;
 
-var d_x = tile_x_min;
-var d_y = tile_y_min;
+var d_x_v2 = tile_x_min;
+var d_y_v2 = tile_y_min;
 /////
-var d1_x = (gr_c11 - gr_c1) /Math.pow(2,7);
-var d1_y = (gr_c12 - gr_c2) /Math.pow(2,7); //LAL per 1 unit    map*d1x = long /// long /dx1
-
-
-function tileTOlong(x) {
-    return gr_c1 + ((x - d1_x)/d_x);
-}
-
-function tileTOgrlat(y) { //UP IS NEGATIVE
-    return gr_c2 - ((y - d1_y)/d_y);
-}
-/////
-function latTOtile(y) {   
-    var v = y - gr_c2;
-    return d_y - (v / d_y);
-}                      
-
-function longTOtile(x) {
-    var v = x - gr_c1;
-    return d_x + (v / d_x);
-}
-
+var d1_x_v2 = (gr_c11_v2 - gr_c1_v2) /Math.pow(2,7);
+var d1_y_v2 = (gr_c12_v2 - gr_c2_v2) /Math.pow(2,7); //LAL per 1 unit    map*d1x = long /// long /dx1
 **/
+
+//NEW VARIABLED BASED ON MORE ACCURATE TILE COORDINATED OF THE EDGES OF THE 50000x50000 grid;
+    
+    /** ORIGINAL LATLONG COORDS THAT MAKE 0-50000 grid coords
+    var data_ax_v = 51.723685;
+    var data_ay_v = 0.426118;
+    var data_bx_v = 51.238917;
+    var data_by_v = -0.59728;
+    **/
+    //Versions that give the 
+    var data_ax_v_tile = (256 * 128) + 77;//West
+    var data_ay_v_tile = (169 * 128) + 96;//norTH
+    //
+    var data_bx_v_tile = (255* 128) + 16; //East //0
+    var data_by_v_tile = (170* 128) + 111;//South //0
+
+    var data_x_diff_u = (data_ax_v_tile - data_bx_v_tile) / 50000;
+    var data_y_diff_u = (data_by_v_tile - data_ay_v_tile) / 50000;
+
+function latTOtile_v2(v) {
+    var gr = latTOgr(v); //Y  //SWITCHAROO
+    var qr = 50000 - gr;
+    //alert("lat  "+v+","+gr);
+    return data_ay_v_tile + (qr * data_y_diff_u);
+}
+
+function longTOtile_v2(v) {
+    var gr = longTOgr(v); //X
+    //alert("long  "+v+","+gr);
+    return data_bx_v_tile + (gr * data_x_diff_u);
+}
+
+
+
+
 
 //VERSION THAT POSSIBLY ACTUALLY WORKS!.!.!.!
                                     //BASED OFF 9/255/170
@@ -180,54 +195,6 @@ var debug_banana = false;
 
 
 function tileXtoRender(v) { //Tile coordinates to render ones
-    /**
-    var z = 16 - tile_zoom;       ///9 -> 16
-    var diff = Math.pow(2,0-z);//2^(0-z);                       //SLIGHTLY BWORKED
-    return Math.round((v - tile_x_min) * diff * 32);
-    **/
-    //
-
-    /**
-    var z = 16 - tile_zoom;       ///9 -> 16
-    var diff = Math.pow(2,0-z);//2^(0-z);  //Reduces as zoom increases
-    var vq = v - tile_x_min;
-    //alert("vq="+vq);
-    return minX_tile() + (vq * diff * 32);
-    **/
-
-    //Probably overthought but i am annoyed it never seems to work
-
-    /**
-    var diff = Math.pow(2,16 - tile_zoom); // Decreases as zoom in =>1  //Increases as zoom out
-    //var xBase = Math.floor(tile_x_min * diff);
-    var xc_min = minX_tile();
-    var xc_max = maxX_tile()+32; // 6 long grid of tiles
-    var xdist = xc_max - xc_min; //COMES TO 192
-    var diff_tile = v - tile_x_min; //Amount of smaller tiles differential
-    var d_x_t_units = xdist / (1 * diff);        //Render coords per small tile; (yeah inefficient but :p)
-    //alert("xdist="+xdist+",difftile="+diff_tile+"dxtunits="+d_x_t_units); 
-    return xc_min + (diff_tile * d_x_t_units);
-    **/
-    /**
-    var min_tile = getMINtile();            
-    var max_tile = getMAXtile();           
-    var coord_x_min = min_tile.x;       //min_tile = tile render coord min
-    var coord_x_max = max_tile.x + 32;  //max_tile = tile render coord max
-    var z = 16 - tile_zoom;       ///9 -> 16 //Zoom ratio tweak
-    var diff = Math.pow(2,0-z);//2^(0-z);    //Zoom to power of 2
-    var xBase = Math.floor((tile_x_min * diff));   //Tile coord x base reduced by zoom amount
-    var xEnd = Math.floor((tile_x_min  * diff) + 7); //Tile coord x end reduced by zoom amount
-    //alert(v+","+xV+","+co_dif);
-    var xV = (v * diff);
-    var co_dif = coord_x_max - coord_x_min;
-    var diffi = (xV*1) - xBase;
-    var cc_diff = xEnd - xBase;
-    var cc_rat = diffi / cc_diff;
-    //alert(v+","+xV+","+diffi);
-    alert(v+","+xV+","+xBase+","+diffi+","+cc_rat);
-
-    return coord_x_min + (cc_rat * co_dif);
-    **/
 
     //NEW AND IMPROVED TILE BY TILE SYSTEM (THAT WILL PROBABLY SUFFER FROM THE SAME MAGIC)
     var z = 16 - tile_zoom;       ///9 -> 16 //Zoom ratio tweak
@@ -235,118 +202,38 @@ function tileXtoRender(v) { //Tile coordinates to render ones
     var xv = (v * diff);
     var xvl = Math.floor(xv);
     var xvh = Math.ceil(xv);
-    var toReturn = null;
 
     var xbasetiles = Math.floor(tile_x_min * diff); //WAS FLOOR
-    //alert(xbasetiles);
-    for(var q = 0; q < tile_count; q++) {
-        var xrs = Math.round((TILES[q].x - minX_tile()) / 32); //WAS ROUND - HAS TO BE FOR CERTANTY
+    for(var q_t = 0; q_t < tile_count; q_t++) {
+        var xrs = Math.round((TILES[q_t].x - minX_tile()) / 32); //WAS ROUND - HAS TO BE FOR CERTANTY
         if(Math.floor(xbasetiles + xrs) == xvl) { //WAS FLOOR
-            //console.log(xrs);
             var xvf = (xv - xvl);
-            //9=0,10=1,11=2
-            //var silly_fix = tile_zoom - 9;
-            //silly_fix *= 0.15;
-            //silly_fix += silly_fix;
-            //console.log(xvf);
-           // console.log(xvf + ":" + xv);
-            if(debug_banana) {
-                alert("X: logic v="+v+", xv="+xv+", xvl="+xvl+ ", :: xrs="+xrs+", btiles="+xbasetiles);
-                TILES[q].material.transparent = true;
-                TILES[q].material.opacity = 0.1;
-            }
-            //return TILES[q].x + ((xvf) * 32);  //WAS +
-            if(toReturn == null) {
-                toReturn = (TILES[q].x - 16) + (xvf * 32);
-            }
+            return (TILES[q_t].x - 16) + (xvf * 32);
         }
     }
-    return toReturn;
 }
 
 
 
 function tileYtoRender(v) {
-    /**
-    var z = 16 - tile_zoom;       ///9 -> 16
-    var diff = Math.pow(2,0-z);//2^(0-z);
-
-    return Math.round((v - tile_y_min) * diff * 32);
-    **/
-    /**
-    var z = 16 - tile_zoom;       ///9 -> 16
-    var diff = Math.pow(2,0-z);//2^(0-z);  //Reduces as zoom increases
-    var vq = v - tile_y_min;
-    return minY_tile() - (vq * diff * 32);
-    **/
-
-    /**
-    var diff = Math.pow(2,16 - tile_zoom); // Decreases as zoom in =>1  //Increases as zoom out
-    //var xBase = Math.floor(tile_x_min * diff);
-    var yc_min = minY_tile();
-    var yc_max = maxY_tile()+32; // 6 long grid of tiles
-    var ydist = yc_max - yc_min;
-    var diff_tile = tile_y_min - v; //Amount of smaller tiles
-    var d_y_t_units = ydist / (1 * diff);        //Render coords per small tile; (yeah inefficient but :p)
-    //alert("ydist="+ydist+",difftile="+diff_tile+"dytunits="+d_y_t_units);
-    return  (diff_tile * d_y_t_units) - yc_min;
-    **/
-
-    /**
-    var min_tile = getMINtile();          
-    var max_tile = getMAXtile();           
-    var coord_y_min = min_tile.y;       //min_tile = tile render coord min
-    var coord_y_max = max_tile.y + 32;  //max_tile = tile render coord max
-    var z = 16 - tile_zoom;       ///9 -> 16 //Zoom ratio tweak
-    var diff = Math.pow(2,0-z);//2^(0-z);    //Zoom to power of 2
-    var yBase = Math.floor((tile_y_min * diff));   //Tile coord x base reduced by zoom amount
-    var yEnd = Math.floor((tile_y_min  * diff) + 7); //Tile coord x end reduced by zoom amount
-    //alert(v+","+xV+","+co_dif);
-    var yV = (v * diff);
-    var co_dif = coord_y_max - coord_y_min;
-    var diffi = (yV*1) - yBase;
-    var cc_diff = yEnd - yBase;
-    var cc_rat = diffi / cc_diff;
-    //alert(v+","+xV+","+diffi);
-    return coord_y_min - (cc_rat * co_dif);
-    **/
-
     //NEW AND IMPROVED TILE BY TILE SYSTEM (THAT WILL PROBABLY SUFFER FROM THE SAME MAGIC)
     var z = 16 - tile_zoom;       ///9 -> 16 //Zoom ratio tweak
     var diff = Math.pow(2,0-z);//2^(0-z);    //Zoom to power of 2
     var yv = (v * diff);
     var yvl = Math.floor(yv);
     var yvh = Math.ceil(yv);
-    var toReturn = null;
 
     var ybasetiles = Math.floor(tile_y_min * diff); //WAS FLOOR
-    for(var q = 0; q < tile_count; q++) {
-        var yrs = Math.round((TILES[q].y - minY_tile()) / 32); //WAS ROUND
+    for(var q_t = 0; q_t < tile_count; q_t++) {
+        var yrs = Math.round((TILES[q_t].y - minY_tile()) / 32); //WAS ROUND
         if(Math.floor(ybasetiles - yrs) == yvl) {  //WAS FLOOR   //Was == yvl
-            //console.log("Found");
-            //var yvf = 1 - (yvh - yv);//(yv - yvl);    //Kinda works with 1- ...;
-            //Experimental
             var yvvts = ((0 - v) * diff);
             var ykts = Math.ceil(yvvts);
             var ytkks = yvvts - ykts;
             var yvf = 1 + ytkks;
-            //var silly_fix = tile_zoom - 9;
-            //silly_fix *= 0.15;
-            //silly_fix += silly_fix;
-            console.log(yvf);
-            if(debug_banana) {
-                TILES[q].material.transparent = true;
-                TILES[q].material.opacity = 0.5;
-                //if(yvf = 0.25) {
-                //    alert(yv + "," + );
-                //}
-            }
-            if(toReturn == null) {
-                toReturn  = (TILES[q].y - (16)) + ((yvf) * 32); //Was -
-            }
+            return (TILES[q_t].y - 16) + (yvf * 32);
         }
     }
-    return toReturn;
 }
 
 
@@ -376,16 +263,18 @@ function tileYtoRender(v) {
     var data_x_unit = data_xd_v / 50000;
     var data_y_unit = data_yd_v / 50000;
 
-    function sixdp(v) {
+    function sixdp(v) { //WAS 6 dp
         return Math.round(v * 1000000) / 1000000;
     }
 
     function latTOgr(v) {
-        return sixdp((v - data_bx_v) / data_x_unit);
+       return sixdp((v - data_by_v) / data_y_unit); //WAS /
     }
     function longTOgr(v) {
-        return sixdp((v - data_by_v) / data_y_unit);
+        return sixdp((v - data_bx_v) / data_x_unit); //WAS /
     }
+
+
     function grTOlat(v) {
         return data_bx_v + ( sixdp(v) * data_x_unit);
     }
@@ -831,13 +720,20 @@ var ICONS = [];
 var icon_count = 0;
 
 
-var ICON = function(lat,longi,str) {
-    this.x = Math.round(longTOtile(longi));
-    this.y = Math.round(latTOtile(lat)); //LAT IS UP LAT IS UP LAT IS UP
+var ICON = function(x,y,str) {
+    this.x = Math.round(longTOtile_v2(x));
+    this.y = Math.round(latTOtile_v2(y)); //LAT IS UP LAT IS UP LAT IS UP
+    //this.xgr = longTOgr(x);
+    //this.ygr = latTOgr(y);
+    //this.x = longTOtile_v2(x);
+    //this.y = latTOtile_v2(y);
+    //this.x = x;
+    //this.y = y;
     //alert("NEW ICON");
     //alert(this.x);
     //alert(this.y);
     ////////
+    //this.str = str;
     this.geom = new THREE.PlaneGeometry(2,2);//(15,15);
     this.texture = THREE.ImageUtils.loadTexture(str);//'/earth.jpg');
     this.material = new THREE.MeshBasicMaterial({map: this.texture});
@@ -866,24 +762,34 @@ var yOFF_icon = 0;
 
 
 ICON.prototype.updatePOS = function(){              //BUG   =   on_zoom_out //x>>,, y<<
+    //alert(this.str+":: update()");
     var dat = 0.75+((zoom_level / 100)*0.75)
     //WIL BE CALLED WITH THE REST OF STUFF    //TODO add offset because of zoom
     var xloc = tileXtoRender(this.x);//minX_tile() + tileXtoRender(this.x);
     var yloc = tileYtoRender(this.y);//minY_tile() - tileYtoRender(this.y);
     xloc *= dat;
     yloc *= dat; //FINAL TWEAKS
-    //ALSO PARTIAL SMART HIDING WHEN OUT OF RANGE
-    if(xloc > -200 && xloc > 200 && yloc > -200 && yloc < 200) {
+    if(isNaN(xloc) || isNaN(yloc)) {
+        this.mesh.position.x = -400;
+        this.mesh.position.y = -400;
+    }else{
         this.mesh.position.x = xloc;
         this.mesh.position.y = yloc;
-        //UNHIDE
-        //this.show();
-    }else {
-        //HIDE
-        this.mesh.position.x = xloc;
-        this.mesh.position.y = yloc;
-        //this.hide();
     }
+
+    //ALSO PARTIAL SMART HIDING WHEN OUT OF RANGE
+    //if(xloc > -200 && xloc > 200 && yloc > -200 && yloc < 200) {
+    //    this.mesh.position.x = xloc;
+    //    this.mesh.position.y = yloc;
+    //    //UNHIDE
+    //    //this.show();
+    //}else {
+    ///    //HIDE
+    //    this.mesh.position.x = xloc;
+    //    this.mesh.position.y = yloc;
+    //    //this.hide();
+    //
+//}
 
 }
 
@@ -894,28 +800,37 @@ ICON.prototype.Rlocate = function() {
 
 
 function handleIconRepos() {
-    for(var v = 0; v < icon_count; v++) {
-        ICONS[v].updatePOS(); //HANDLE
-    }
+    //alert(icon_count);
+    //for(var v = 0; v < icon_count; v++) {
+    //    ICONS[v].updatePOS(); //HANDLE
+   // }
+   for(var v = 0; v < ICONS.length; v++) {
+        ICONS[v].updatePOS();
+   }
 }
 
 
 
 //new ICON(CURR_X,CURR_Y,"earth.jpg");
 //new ICON(51.507712, -0.118921,"/images/Tourism.png");
-//new ICON(52.159634, -0.349748,"/images/Tourism.png");
+//var q_icon = new ICON(52.159634, -0.349748,"/images/Tourism.png");
 //new ICON(51.49803955,-0.465443205,"/images/Fire.png");
 
 //London square test
-//new ICON(data_ax_v,data_ay_v,"/images/Fire.png");
-//new ICON(data_ax_v,data_by_v,"/images/Fire.png");
-//new ICON(data_bx_v,data_ay_v,"/images/Fire.png");
-//new ICON(data_bx_v,data_by_v,"/images/Fire.png");
+new ICON(data_ax_v,data_ay_v,"/images/Fire.png");
+new ICON(data_ax_v,data_by_v,"/images/Fire.png");
+new ICON(data_bx_v,data_ay_v,"/images/Fire.png");
+new ICON(data_bx_v,data_by_v,"/images/Fire.png");
 ///
 var test_icon = new ICON(0,0,"images/Tourism.png");
-test_icon.x = 255 * 128;
-test_icon.y = 170 * 128;
+test_icon.x = 255 * 128 + 64;
+test_icon.y = 170 * 128 + 64;
 
+//var test_icon_2 = new ICON(0,0,"images/Tourism.png");
+//test_icon_2.x = 255 * 128 + 128;
+//test_icon_2.y = 170 * 128 + 128;
+
+//new ICON(2000,2000,"images/Fire.png");
 //var vphp = getPHP("request.php?arg=CAKE");
 
 

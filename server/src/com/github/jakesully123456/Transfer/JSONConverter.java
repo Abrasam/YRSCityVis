@@ -61,7 +61,7 @@ public class JSONConverter {
 			array = array + "]";
 			return array;
 		}
-		return object.toString();
+		return object.toString(); //Lazy catch all clause?
 	}
 	
 	public static Object[] toObjectArray(Object array) {

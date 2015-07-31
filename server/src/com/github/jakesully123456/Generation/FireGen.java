@@ -31,7 +31,7 @@ public class FireGen {
 				System.out.println("ERROR - Special borough:" + borough);
 			}
 		}
-		System.out.println(fires.toString());
+		//System.out.println(fires.toString());
 	}
 	
 	private int find(String b) {

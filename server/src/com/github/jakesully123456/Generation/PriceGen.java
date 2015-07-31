@@ -23,7 +23,7 @@ public class PriceGen {
 				System.out.println("ERROR - Special borough:" + borough);
 			}
 		}
-		System.out.println(prices.toString());
+		//System.out.println(prices.toString());
 	}
 	
 	private int find(String b) {

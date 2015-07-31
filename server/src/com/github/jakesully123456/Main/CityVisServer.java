@@ -59,11 +59,11 @@ public class CityVisServer {
 				//This returns a hashmap of the boroughs to their fire count last month. Also in JSON format.
 			} else if (args.length > 1 && args[1].equalsIgnoreCase("firedata")) {
 				gen = new BoroughGen();
-				System.out.println(JSONConverter.toString(new FireGen(gen)));
+				System.out.println(JSONConverter.toString(new FireGen(gen).fires));
 				//Returns the average price per borough. Also a JSON formatted hashmap.
 			} else if (args.length > 1 && args[1].equalsIgnoreCase("pricedata")) {
 				gen = new BoroughGen();
-				System.out.println(JSONConverter.toString(new PriceGen(gen)));
+				System.out.println(JSONConverter.toString(new PriceGen(gen).prices));
 				//Sends a JSON formatted list of each ward.
 			} else if (args.length > 1 && args[1].equalsIgnoreCase("wardlist")) {
 				System.out.println(JSONConverter.toString(new WardGen().wards()));

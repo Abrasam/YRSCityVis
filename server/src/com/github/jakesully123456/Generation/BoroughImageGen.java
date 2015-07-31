@@ -32,8 +32,12 @@ public class BoroughImageGen {
 			}
 		}
 	}
-	
+
 	private Color getFireRGB(FireGen fg, BoroughGen bg, int avg, int x, int y) {
-		return (fg.fires.get(bg.getBorough(x, y)) < avg ? new Color(0, 255, 0) :  (avg == fg.fires.get(bg.getBorough(x, y)) ? new Color(255, 165, 0) : new Color(255, 0, 0)));
+		if (bg.getBorough(x, y) != -1 && bg.boroughs.get(bg.getBorough(x, y)) != null) {
+			return (fg.fires.get(bg.boroughs.get(bg.getBorough(x, y))) < avg ? new Color(0, 255, 0) :  (avg == fg.fires.get(bg.boroughs.get(bg.getBorough(x, y)))) ? new Color(255, 165, 0) : new Color(255, 0, 0));
+		} else {
+			return new Color(255, 255, 255);
+		}
 	}
 }

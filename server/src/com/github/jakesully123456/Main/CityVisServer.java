@@ -84,9 +84,10 @@ public class CityVisServer {
 				System.out.println(fires.fires.keySet().size());
 				System.out.println(price.prices.keySet().size());
 				System.out.println(wlg.items.size());
-			}
-		} else if (args.length > 1 && args[1].equalsIgnoreCase("fireimg")) {
-			new BoroughImageGen(true);
+			} else if (args.length > 1 && args[1].equalsIgnoreCase("fireimg")) {
+				System.out.println("FIRE DOING");
+				new BoroughImageGen(true);
+			} 
 		} else {
 			System.out.println("Parse path of file directory as argument 1.");
 		}

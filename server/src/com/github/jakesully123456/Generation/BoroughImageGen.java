@@ -9,7 +9,7 @@ import javax.imageio.ImageIO;
 
 public class BoroughImageGen {
 
-	public BoroughImageGen(boolean fire) {
+	public BoroughImageGen(boolean fire, boolean price, boolean map) {
 		if (fire) {
 			BoroughGen gen = new BoroughGen();
 			FireGen fireGen = new FireGen(gen);
@@ -18,15 +18,53 @@ public class BoroughImageGen {
 			for (int i : fireGen.fires.values()) {
 				average += i;
 			}
+			System.out.println(average);
 			average = Math.round(average/(float)(fireGen.fires.values().size() + 1));
+			System.out.println(average);
 			for (int x = 0; x < 500; x ++) {
 				for (int y = 0; y < 500; y ++) {
 					Color col = getFireRGB(fireGen, gen, average, x, y);
-					image.setRGB(col.getRed(), col.getGreen(), col.getBlue());
+					image.setRGB(x, y, col.getRGB());
 				}
 			}
 			try {
-				ImageIO.write(image, "png", new File(GenUtil.absolutePath + "fires.png"));
+				ImageIO.write(image, "png", new File(GenUtil.absolutePathWeb + "fires.png"));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} else if (price) {
+			BoroughGen gen = new BoroughGen();
+			PriceGen priceGen = new PriceGen(gen);
+			BufferedImage image = new BufferedImage(500, 500, BufferedImage.TYPE_INT_ARGB);
+			int average = -1;
+			for (int i : priceGen.prices.values()) {
+				average += i;
+			}
+			System.out.println(average);
+			average = Math.round(average/(float)(priceGen.prices.values().size() + 1));
+			System.out.println(average);
+			for (int x = 0; x < 500; x ++) {
+				for (int y = 0; y < 500; y ++) {
+					Color col = getPriceRGB(priceGen, gen, average, x, y);
+					image.setRGB(x, y, col.getRGB());
+				}
+			}
+			try {
+				ImageIO.write(image, "png", new File(GenUtil.absolutePathWeb + "prices.png"));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} else if (map) {
+			BoroughGen gen = new BoroughGen();
+			BufferedImage image = new BufferedImage(500, 500, BufferedImage.TYPE_INT_ARGB);
+			for (int x = 0; x < 500; x ++) {
+				for (int y = 0; y < 500; y ++) {
+					Color col = getMapRGB(gen, x, y);
+					image.setRGB(x, y, col.getRGB());
+				}
+			}
+			try {
+				ImageIO.write(image, "png", new File(GenUtil.absolutePathWeb + "bmap.png"));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -35,7 +73,24 @@ public class BoroughImageGen {
 
 	private Color getFireRGB(FireGen fg, BoroughGen bg, int avg, int x, int y) {
 		if (bg.getBorough(x, y) != -1 && bg.boroughs.get(bg.getBorough(x, y)) != null) {
-			return (fg.fires.get(bg.boroughs.get(bg.getBorough(x, y))) < avg ? new Color(0, 255, 0) :  (avg == fg.fires.get(bg.boroughs.get(bg.getBorough(x, y)))) ? new Color(255, 165, 0) : new Color(255, 0, 0));
+			return (fg.fires.get(bg.boroughs.get(bg.getBorough(x, y))) < avg + 10 && fg.fires.get(bg.boroughs.get(bg.getBorough(x, y))) > avg - 10 ? new Color(255, 165, 0) : (fg.fires.get(bg.boroughs.get(bg.getBorough(x, y))) < avg ? new Color(0, 255, 0) : new Color(255, 0, 0)));
+			//return (fg.fires.get(bg.boroughs.get(bg.getBorough(x, y))) < avg ? new Color(0, 255, 0) :  (avg == fg.fires.get(bg.boroughs.get(bg.getBorough(x, y)))) ? new Color(255, 165, 0) : new Color(255, 0, 0));
+		} else {
+			return new Color(255, 255, 255);
+		}
+	}
+	
+	private Color getPriceRGB(PriceGen pg, BoroughGen bg, int avg, int x, int y) {
+		if (bg.getBorough(x, y) != -1 && bg.boroughs.get(bg.getBorough(x, y)) != null) {
+			return (pg.prices.get(bg.boroughs.get(bg.getBorough(x, y))) < avg + 100000 && pg.prices.get(bg.boroughs.get(bg.getBorough(x, y))) > avg - 100000 ? new Color(192, 192, 192) : pg.prices.get(bg.boroughs.get(bg.getBorough(x, y))) < avg ? new Color(205, 127, 50) : new Color(255, 215, 0));
+		} else {
+			return new Color(255, 255, 255);
+		}
+	}
+	
+	private Color getMapRGB(BoroughGen bg, int x, int y) {
+		if (bg.getBorough(x, y) != -1 && bg.boroughs.get(bg.getBorough(x, y)) != null) {
+			return new Color(129, 185, 235);
 		} else {
 			return new Color(255, 255, 255);
 		}

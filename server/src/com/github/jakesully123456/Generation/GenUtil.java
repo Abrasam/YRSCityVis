@@ -9,6 +9,7 @@ public class GenUtil {
 	 */
 	
 	public static String absolutePath;
+	public static String absolutePathWeb = "C:/wamp/www/";
 	
     public static final double data_ax_v = 51.723685;
     public static final double data_ay_v = 0.426118;

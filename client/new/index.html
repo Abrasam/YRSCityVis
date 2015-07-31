@@ -842,15 +842,17 @@ function tileYtoRender(v) {
     var button_panel = false;
 
     function updateButtons() {
-        var scale = 0.25;
+        var scale = 0.1;
         var offsetx = 1;
         var offsety = 1;
         //Move the tiles icon into the correct location
         var w_in = window.innerWidth / 2;
         var h_in = window.innerHeight / 2;
         //
-        BUTTON_TILE.mesh.position.x = 0 - ((w_in + offsetx) * scale);
-        BUTTON_TILE.mesh.position.y = 0 - ((h_in + offsety) + scale);
+        //BUTTON_TILE.mesh.position.x = 0 - ((w_in + offsetx) * scale);
+        //BUTTON_TILE.mesh.position.y = 0 - ((h_in + offsety) + scale);
+        BUTTON_TILE.x = 0 - ((w_in + offsetx) * scale);
+        BUTTON_TILE.y = 0 - ((h_in + offsety) * scale);
 
         //BUTTON PANEL APPEAR + DISAPPEAR
         if(button_panel) {

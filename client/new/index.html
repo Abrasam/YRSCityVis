@@ -176,6 +176,7 @@ function getMAXtile() {
 }
 
 
+var debug_banana = false;
 
 
 function tileXtoRender(v) { //Tile coordinates to render ones
@@ -234,19 +235,33 @@ function tileXtoRender(v) { //Tile coordinates to render ones
     var xv = (v * diff);
     var xvl = Math.floor(xv);
     var xvh = Math.ceil(xv);
+    var toReturn = null;
 
-    var xbasetiles = (tile_x_min * diff);
+    var xbasetiles = Math.floor(tile_x_min * diff); //WAS FLOOR
+    //alert(xbasetiles);
     for(var q = 0; q < tile_count; q++) {
-        var xrs = Math.round((TILES[q].x - minX_tile()) / 32);
-        if(Math.floor(xbasetiles + xrs) == xvl) {
-            console.log(xrs);
+        var xrs = Math.round((TILES[q].x - minX_tile()) / 32); //WAS ROUND - HAS TO BE FOR CERTANTY
+        if(Math.floor(xbasetiles + xrs) == xvl) { //WAS FLOOR
+            //console.log(xrs);
             var xvf = (xv - xvl);
             //9=0,10=1,11=2
-            var silly_fix = tile_zoom - 9;
-            silly_fix *= 0.25;
-            return TILES[q].x + ((xvf + silly_fix) * 32);
+            //var silly_fix = tile_zoom - 9;
+            //silly_fix *= 0.15;
+            //silly_fix += silly_fix;
+            //console.log(xvf);
+           // console.log(xvf + ":" + xv);
+            if(debug_banana) {
+                alert("X: logic v="+v+", xv="+xv+", xvl="+xvl+ ", :: xrs="+xrs+", btiles="+xbasetiles);
+                TILES[q].material.transparent = true;
+                TILES[q].material.opacity = 0.1;
+            }
+            //return TILES[q].x + ((xvf) * 32);  //WAS +
+            if(toReturn == null) {
+                toReturn = (TILES[q].x - 16) + (xvf * 32);
+            }
         }
     }
+    return toReturn;
 }
 
 
@@ -302,20 +317,36 @@ function tileYtoRender(v) {
     var yv = (v * diff);
     var yvl = Math.floor(yv);
     var yvh = Math.ceil(yv);
+    var toReturn = null;
 
-    var ybasetiles = (tile_y_min * diff);
+    var ybasetiles = Math.floor(tile_y_min * diff); //WAS FLOOR
     for(var q = 0; q < tile_count; q++) {
-        var yrs = Math.round((TILES[q].y - minY_tile()) / 32);
-        if(Math.floor(ybasetiles - yrs) == yvl) {
+        var yrs = Math.round((TILES[q].y - minY_tile()) / 32); //WAS ROUND
+        if(Math.floor(ybasetiles - yrs) == yvl) {  //WAS FLOOR   //Was == yvl
             //console.log("Found");
-            var yvf = (yv - yvl);
-
-            var silly_fix = tile_zoom - 9;
-            silly_fix *= 0.25;
-            return TILES[q].y - ((yvf + silly_fix) * 32);
+            //var yvf = 1 - (yvh - yv);//(yv - yvl);    //Kinda works with 1- ...;
+            //Experimental
+            var yvvts = ((0 - v) * diff);
+            var ykts = Math.ceil(yvvts);
+            var ytkks = yvvts - ykts;
+            var yvf = 1 + ytkks;
+            //var silly_fix = tile_zoom - 9;
+            //silly_fix *= 0.15;
+            //silly_fix += silly_fix;
+            console.log(yvf);
+            if(debug_banana) {
+                TILES[q].material.transparent = true;
+                TILES[q].material.opacity = 0.5;
+                //if(yvf = 0.25) {
+                //    alert(yv + "," + );
+                //}
+            }
+            if(toReturn == null) {
+                toReturn  = (TILES[q].y - (16)) + ((yvf) * 32); //Was -
+            }
         }
     }
-
+    return toReturn;
 }
 
 
@@ -876,11 +907,14 @@ function handleIconRepos() {
 //new ICON(51.49803955,-0.465443205,"/images/Fire.png");
 
 //London square test
-new ICON(data_ax_v,data_ay_v,"/images/Fire.png");
-new ICON(data_ax_v,data_by_v,"/images/Fire.png");
-new ICON(data_bx_v,data_ay_v,"/images/Fire.png");
-new ICON(data_bx_v,data_by_v,"/images/Fire.png");
-
+//new ICON(data_ax_v,data_ay_v,"/images/Fire.png");
+//new ICON(data_ax_v,data_by_v,"/images/Fire.png");
+//new ICON(data_bx_v,data_ay_v,"/images/Fire.png");
+//new ICON(data_bx_v,data_by_v,"/images/Fire.png");
+///
+var test_icon = new ICON(0,0,"images/Tourism.png");
+test_icon.x = 255 * 128;
+test_icon.y = 170 * 128;
 
 //var vphp = getPHP("request.php?arg=CAKE");
 

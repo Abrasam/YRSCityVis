@@ -780,7 +780,7 @@ function tileYtoRender(v) {
     var plane_mesh1 = new THREE.Mesh(plane_geometry, plane_material);
     var plane_mesh2 = new THREE.Mesh(plane_geometry, plane_material);
 
-	var renderer = new THREE.WebGLRenderer();
+	var renderer = new THREE.WebGLRenderer({antialies:false});
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	document.body.appendChild( renderer.domElement );
 
@@ -829,7 +829,7 @@ function tileYtoRender(v) {
 
     //// MENU
 
-    var geo_menu = new THREE.PlaneGeometry(50,300);
+    var geo_menu = new THREE.PlaneGeometry(15,20);
     var menu_texture = THREE.ImageUtils.loadTexture("images/background.png");//'/earth.jpg');
     var menu_material = new THREE.MeshBasicMaterial({map: menu_texture});
     //var mat_blue = new THREE.MeshBasicMaterial( {color: 0x0000ff, side: THREE.DoubleSide} );
@@ -842,17 +842,19 @@ function tileYtoRender(v) {
     var button_panel = false;
 
     function updateButtons() {
-        var scale = 0.01;
-        var offsetx = 0.1;
-        var offsety = 0.1;
+        var scaleXb = -0.0155;
+        var scaleYb = 0.0155;
+        var offsetxb = 2.1;
+        var offsetyb = -1.7;
         //Move the tiles icon into the correct location
         var w_in = window.innerWidth / 2;
         var h_in = window.innerHeight / 2;
+        //alert(w_in+" :: "+h_in);
         //
         //BUTTON_TILE.mesh.position.x = 0 - ((w_in + offsetx) * scale);
         //BUTTON_TILE.mesh.position.y = 0 - ((h_in + offsety) + scale);
-        BUTTON_TILE.x = 0 - ((w_in + offsetx) * scale);
-        BUTTON_TILE.y = 0 - ((h_in + offsety) * scale);
+        BUTTON_TILE.mesh.position.x = (w_in * scaleXb) + offsetxb;//0 - ((w_in + offsetx) * scale);
+        BUTTON_TILE.mesh.position.y = (h_in * scaleYb) + offsetyb;//0 - ((h_in + offsety) * scale);
 
         //BUTTON PANEL APPEAR + DISAPPEAR
         if(button_panel) {
@@ -869,9 +871,25 @@ function tileYtoRender(v) {
             }
         }
         //LOCATING THE MAIN PANEL
+        var offsetxbVmen = -2;
+        var offsetybVmen = - 11;
 
+        plane_menu.position.x = (w_in * scaleXb) + offsetxbVmen;
+        plane_menu.position.y = (h_in * scaleYb) + offsetybVmen;
 
         //LOCATING THE REST OF THE TILES
+        var by1u = 1;
+
+        for(var q =0; q < BUTTONS.length; q++) {
+            if(BUTTONS[q] != BUTTON_TILE) {
+                var xtl = BUTTONS[q].x;
+                var ytl = BUTTONS[q].y;
+
+                BUTTONS[q].mesh.position.x = ((w_in * scaleXb) + offsetxbVmen) + (xtl * bx1u);
+                BUTTONS[q].mesh.position.y = ((h_in * scaleXb) + offsetybVmen) + (ytl * by1u);
+
+            }
+        }
     }
 
     var BUTTONS=[];
@@ -918,19 +936,20 @@ function tileYtoRender(v) {
     }
 
     ///BUTTONS
-    new BUTTON(-30,10,"images/Bus.png","button_bus");
-    new BUTTON(-22,10,"images/Underground.png","button_tube");
-    new BUTTON(-22,5,"images/Crime.png","button_bus");
-    new BUTTON(-30,5,"images/Fire.png","button_fire");
-    new BUTTON(-30,-10,"images/HousePrice.png","button_price");
-    BUTTON_TILE =  new BUTTON(-22,-10,"images/TabButton.png","button_tab");
-    new BUTTON(-22,-5,"images/Tourism.png","button_tourism");
-    new BUTTON(-30,-5,"images/Train.png","button_train");
-    new BUTTON(-30,0,"images/HousesForSale.png","button_sale");
+    new BUTTON(0,0,"images/Bus.png","button_bus");
+    new BUTTON(0,1,"images/Underground.png","button_tube");
+    new BUTTON(1,0,"images/Crime.png","button_bus");
+    new BUTTON(1,1,"images/Fire.png","button_fire");
+    new BUTTON(2,0,"images/HousePrice.png","button_price");
+    BUTTON_TILE =  new BUTTON(50,50,"images/TabButton.png","button_tab");
+    new BUTTON(2,1,"images/Tourism.png","button_tourism");
+    new BUTTON(3,0,"images/Train.png","button_train");
+    new BUTTON(3,1,"images/HousesForSale.png","button_sale");
 
     //END
 
-    plane_menu.position.set(-50,-50,20);
+    //plane_menu.position.set(-50,-50,20);
+    plane_menu.position.set(-4,-4,20);
     plane_menu.rotation.y = toRADS(2);//-(Math.PI / 2);
     plane_menu.rotation.z = toRADS(0);
     plane_menu.rotation.x = toRADS(2);

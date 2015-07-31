@@ -16,10 +16,69 @@
 
 <script>    //Server connection + communication code
 
+    //Predownloaded JSON data
+    var wardlocs = null;
+    var boroughmap = null;
+    var crime_data = null;
+    var price_data = null;
+    var fire_data = null;
+
+
     function decodeJSON(str) {
         return JSON.parse(str);
     }
 
+
+    //NOT EXPANDABLE _ WILL BE DONE LATER
+    function loadWards() {
+        $.get('/index.php?wards', function(data) {handleWard(data);});
+    }
+
+    function handleWard(data) {
+        wardlocs = decodeJSON(data);
+    }
+
+    function loadBorough() {
+        $.get('/index.php?wards', function(data) {handleWard(data);});
+    }
+
+    function handleBorough(data) {
+        boroughmap = decodeJSON(data);
+    }
+
+    function loadCrime() {
+        $.get('/index.php?wards', function(data) {handleWard(data);});
+    }
+
+    function handleCrime(data) {
+        crime_data = decodeJSON(data);
+    }
+
+    function loadPrice() {
+        $.get('/index.php?wards', function(data) {handleWard(data);});
+    }
+
+    function handlePrice(data) {
+        price_data = decodeJSON(data);
+    }
+
+    function loadFire() {
+        $.get('/index.php?wards', function(data) {handleWard(data);});
+    }
+
+    function handleFire(data) {
+        fire_data = decodeJSON(data);
+    }
+
+    loadBorough();
+    loadPrice();
+    loadCrime();
+    loadWards();
+    loadFire();
+
+
+
+    /**
     var last_request = null;
     var json_p_request = null;
 
@@ -52,7 +111,7 @@
         relay_f = rel_f;
         $.get('http://www.yoursite.com/test_output.php', function(data) {relay_f(data);});
     }
-
+    **/
     //Base handling functions
 
 
@@ -723,17 +782,7 @@ var icon_count = 0;
 var ICON = function(x,y,str) {
     this.x = Math.round(longTOtile_v2(x));
     this.y = Math.round(latTOtile_v2(y)); //LAT IS UP LAT IS UP LAT IS UP
-    //this.xgr = longTOgr(x);
-    //this.ygr = latTOgr(y);
-    //this.x = longTOtile_v2(x);
-    //this.y = latTOtile_v2(y);
-    //this.x = x;
-    //this.y = y;
-    //alert("NEW ICON");
-    //alert(this.x);
-    //alert(this.y);
     ////////
-    //this.str = str;
     this.geom = new THREE.PlaneGeometry(2,2);//(15,15);
     this.texture = THREE.ImageUtils.loadTexture(str);//'/earth.jpg');
     this.material = new THREE.MeshBasicMaterial({map: this.texture});
@@ -777,20 +826,6 @@ ICON.prototype.updatePOS = function(){              //BUG   =   on_zoom_out //x>
         this.mesh.position.y = yloc;
     }
 
-    //ALSO PARTIAL SMART HIDING WHEN OUT OF RANGE
-    //if(xloc > -200 && xloc > 200 && yloc > -200 && yloc < 200) {
-    //    this.mesh.position.x = xloc;
-    //    this.mesh.position.y = yloc;
-    //    //UNHIDE
-    //    //this.show();
-    //}else {
-    ///    //HIDE
-    //    this.mesh.position.x = xloc;
-    //    this.mesh.position.y = yloc;
-    //    //this.hide();
-    //
-//}
-
 }
 
 ICON.prototype.Rlocate = function() {
@@ -800,38 +835,12 @@ ICON.prototype.Rlocate = function() {
 
 
 function handleIconRepos() {
-    //alert(icon_count);
-    //for(var v = 0; v < icon_count; v++) {
-    //    ICONS[v].updatePOS(); //HANDLE
-   // }
    for(var v = 0; v < ICONS.length; v++) {
         ICONS[v].updatePOS();
    }
 }
 
 
-
-//new ICON(CURR_X,CURR_Y,"earth.jpg");
-//new ICON(51.507712, -0.118921,"/images/Tourism.png");
-//var q_icon = new ICON(52.159634, -0.349748,"/images/Tourism.png");
-//new ICON(51.49803955,-0.465443205,"/images/Fire.png");
-
-//London square test
-new ICON(data_ax_v,data_ay_v,"/images/Fire.png");
-new ICON(data_ax_v,data_by_v,"/images/Fire.png");
-new ICON(data_bx_v,data_ay_v,"/images/Fire.png");
-new ICON(data_bx_v,data_by_v,"/images/Fire.png");
-///
-var test_icon = new ICON(0,0,"images/Tourism.png");
-test_icon.x = 255 * 128 + 64;
-test_icon.y = 170 * 128 + 64;
-
-//var test_icon_2 = new ICON(0,0,"images/Tourism.png");
-//test_icon_2.x = 255 * 128 + 128;
-//test_icon_2.y = 170 * 128 + 128;
-
-//new ICON(2000,2000,"images/Fire.png");
-//var vphp = getPHP("request.php?arg=CAKE");
 
 
 
@@ -906,6 +915,7 @@ test_icon.y = 170 * 128 + 64;
 
 	var render = function () {
 		requestAnimationFrame( render );
+        icon_update();
         if(!isTube) {
             zoom_update();
             map_update();
@@ -1033,6 +1043,19 @@ function key_up(e) {
 </script>
 
 
+<script>
 
 
+function icon_update() {
+    //var resp = 
+
+
+
+
+}
+
+
+
+
+</script>
 

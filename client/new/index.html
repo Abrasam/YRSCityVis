@@ -52,13 +52,15 @@
     function handleWard(data) {
         wardlocs = decodeJSON(data);
         loadBorough();
-        return; //LOAD PINS DISABLED
+        //return; //LOAD PINS DISABLED
         for(var qq = 0; qq < wardlist.length; qq++) {
             var wardn = wardlist[qq];
             var iconqw = new ICON(wardlocs[wardn][0],wardlocs[wardn][1],"/images/pin.png");
             WARDPINS[WARDPINS.length] = iconqw;
         }
     }
+
+    var BOROUGHPINS = [];
 
     function loadBorough() {
         $.get(requestPHP_S+'/index.php?boroughmap', function(data) {handleBorough(data);});
@@ -67,7 +69,9 @@
     function handleBorough(data) {
         boroughmap = decodeJSON(data);
         loadCrime();
-        for(var qq1 = 0; qq1)
+        for(var qq1 = 0; qq1 < 1; qq1++) {
+
+        }
     }
 
     function loadCrime() {

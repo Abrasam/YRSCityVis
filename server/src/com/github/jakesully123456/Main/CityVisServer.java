@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 
 import com.github.jakesully123456.Generation.BoroughGen;
+import com.github.jakesully123456.Generation.BoroughImageGen;
 import com.github.jakesully123456.Generation.CrimeGen;
 import com.github.jakesully123456.Generation.FireGen;
 import com.github.jakesully123456.Generation.GenUtil;
@@ -84,6 +85,8 @@ public class CityVisServer {
 				System.out.println(price.prices.keySet().size());
 				System.out.println(wlg.items.size());
 			}
+		} else if (args.length > 1 && args[1].equalsIgnoreCase("fireimg")) {
+			new BoroughImageGen(true);
 		} else {
 			System.out.println("Parse path of file directory as argument 1.");
 		}

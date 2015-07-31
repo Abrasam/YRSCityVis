@@ -29,7 +29,7 @@ public class CityVisServer {
 		 */
 		if (args.length > 0) {
 			GenUtil.setAbsolutePath(args[0]);
-			//Returns a image generated borough map array.
+			//Returns a image generated borough map array. Currently redundant until optimised.
 			if (args.length > 1 && args[1].equalsIgnoreCase("boroughmap")) {
 				gen = new BoroughGen();
 				JSONConverter.parseArray(gen.map);

@@ -28,7 +28,7 @@ public class BoroughImageGen {
 				}
 			}
 			try {
-				ImageIO.write(image, "png", new File(GenUtil.absolutePathWeb + "fires.png"));
+				ImageIO.write(GenUtil.imageToBufferedImage(GenUtil.makeColorTransparent(image, Color.WHITE)), "png", new File(GenUtil.absolutePathWeb + "fires.png"));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -50,7 +50,7 @@ public class BoroughImageGen {
 				}
 			}
 			try {
-				ImageIO.write(image, "png", new File(GenUtil.absolutePathWeb + "prices.png"));
+				ImageIO.write(GenUtil.imageToBufferedImage(GenUtil.makeColorTransparent(image, Color.WHITE)), "png", new File(GenUtil.absolutePathWeb + "prices.png"));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -64,7 +64,7 @@ public class BoroughImageGen {
 				}
 			}
 			try {
-				ImageIO.write(image, "png", new File(GenUtil.absolutePathWeb + "bmap.png"));
+				ImageIO.write(GenUtil.imageToBufferedImage(GenUtil.makeColorTransparent(image, Color.WHITE)), "png", new File(GenUtil.absolutePathWeb + "bmap.png"));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

@@ -76,7 +76,13 @@
                     boroughmap = true;
                 }
             }else if(mouseInCoords(396,582,606,750)) { //CRIME
-
+                if(show_crime_circle) {
+                    show_crime_circle = false;
+                    enable_wardpins = false;
+                }else {
+                    show_crime_circle = true;
+                    enable_wardpins = true;
+                }
             }
         }
     }
@@ -221,14 +227,18 @@
             }
         }
         //
-        if(show_crime_circle && tile_zoom > 13) {
+        if(show_crime_circle && tile_zoom > 9) {
             for(var q = 0; q < CRIME_CIRCLES.length; q++) {
-                CRIME_CIRCLES[q].show();
+                //CRIME_CIRCLES[q].showT();
+                CRIME_CIRCLES[q].material.opacity = 0.25;
                 var z = Math.pow(2,0-(16 - tile_zoom));
                 var dat = 0.75+((zoom_level / 100)*0.75);
-                var scc = (z * dat) * 5;
-                overlay_icon.mesh.scale.x = scc;
-                overlay_icon.mesh.scale.y = scc;
+                var scc = (z * dat) * 50;
+                CRIME_CIRCLES[q].mesh.scale.x = scc;
+                CRIME_CIRCLES[q].mesh.scale.y = scc;
+                //UPDATE THE COLOR
+                            //NAA - going to update it on creation
+
             }
         }else {
             for(var q = 0; q < CRIME_CIRCLES.length; q++) {
@@ -283,6 +293,19 @@
     function handleCrime(data) {
         crime_data = decodeJSON(data);
         loadPrice();
+
+            //CHANGE THE CIRCLE COLORS;
+        for(var qq = 0; qq < wardlist.length; qq++) {
+            var wardn = wardlist[qq];
+            var data = crime_data[wardn];
+            if(data < 50) {
+                CRIME_CIRCLES[qq].material.color = "0x00ff00";
+            }else if(data < 130) {
+                CRIME_CIRCLES[qq].material.color = "0xffbb00";
+            }else {
+                CRIME_CIRCLES[qq].material.color = "0cff0000";
+            }
+        }
     }
 
     function loadPrice() {

@@ -107,7 +107,7 @@
 
     //Variables for the buttons to toggle
     var enable_wardpins = true; //OFF BY default     ====>   NOW ALWAYS ON
-    var enable_boroughmap = false; //OFF BY DEFAULT
+    var boroughmap = false; //OFF BY DEFAULT
     var boroughmap_type = 0; //0=default, 1 = fire, 2 = price
     var boro_t_old = -10;
 
@@ -215,7 +215,7 @@
             }
         }
         //
-        if(enable_boroughmap) {
+        if(boroughmap) {  //WAS ENABLE
             if(overlay_icon != null && fire_MAT != null && tile_zoom < 15) { //CLIP AT 14 DUE TO SMALL BUG (shhhh);
                 //console.log("CAKE!!!");
                 overlay_icon.showT();
@@ -1187,7 +1187,7 @@ ICON.prototype.updatePOS = function(){              //BUG   =   on_zoom_out //x>
     xloc *= dat;
     yloc *= dat; //FINAL TWEAKS
     if(isNaN(xloc) || isNaN(yloc)) {
-        console.log("NaN");
+        //console.log("NaN");
         this.mesh.position.x = -4000; //NOT FAR AWAY ENOUGH
         this.mesh.position.y = -4000;
     }else{

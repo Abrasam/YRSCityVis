@@ -12,6 +12,75 @@
 
 </script>
 
+<script>
+    window.mouseX = 0;
+    window.mouseY = 0;
+    document.onmousemove = handleMouseMove;
+
+    function handleMouseMove(e){
+
+        e = e || window.event; 
+        window.mouseX = e.pageX;
+        window.mouseY = e.pageY;
+
+        //DEBUG CODE
+        //console.log("m: "+window.mouseX+","+window.mouseY);
+        
+    }
+
+    function mouseInCoords(x1,x2,y1,y2) {
+        return (window.mouseX > x1 && window.mouseX < x2) && (window.mouseY > y1 && window.mouseY < y2);
+    }
+
+    function onMouseClickHandler() {
+        var x = window.mouseX;
+        var y = window.mouseY;
+        //alert(window.mouseX + "," + window.mouseY);
+
+        //Location based triggering of stuff
+
+        /**Basic Toggle vode
+            if(val) {
+                val = false;
+            }else {val = true;}
+        **/
+
+        //TODO check locationality and implement onClick event to window,document or canvas(test + choose);
+        if(mouseInCoords(0,222,0,200)) { //TILE BUTTON
+            if(button_panel) {
+                button_panel = false;
+            }else {
+                button_panel = true;
+            }
+        }
+        if(button_panel) {
+            if(mouseInCoords(96,300,824,1021)) {
+                if(boroughmap && boroughmap_type == 0) { //BOROUGH
+                    boroughmap = false;
+                }else {
+                    boroughmap_type = 0;
+                    boroughmap = true;
+                }
+            }else if(mouseInCoords(11,297,600,777)) {
+                if(boroughmap && boroughmap_type == 1) { //FIRE
+                    boroughmap = false;
+                }else {
+                    boroughmap_type = 1;
+                    boroughmap = true;
+                }
+            }else if(mouseInCoords(378,585,822,1012)) {
+                if(boroughmap && boroughmap_type == 2) { //PRICE
+                    boroughmap = false;
+                }else {
+                    boroughmap_type = 2;
+                    boroughmap = true;
+                }
+            }else if(mouseInCoords(396,582,606,750)) { //CRIME
+
+            }
+        }
+    }
+</script>
 
 
 <script>    //Server connection + communication code
@@ -31,8 +100,8 @@
     }
 
     //Variables for the buttons to toggle
-    var enable_wardpins = true;
-    var enable_boroughmap = true;
+    var enable_wardpins = false; //OFF BY DEFAULT
+    var enable_boroughmap = false; //OFF BY DEFAULT
     var boroughmap_type = 0; //0=default, 1 = fire, 2 = price
     var boro_t_old = -10;
 
@@ -53,8 +122,14 @@
     }
 
     var WARDPINS = [];
+    var CRIME_CIRCLES = [];
+    var circle_mesh = null;
+    var show_crime_circle = false;
 
     function handleWard(data) {
+        if(circle_mesh == null) {
+            
+        }
         wardlocs = decodeJSON(data);
         loadBorough();
         for(var qq = 0; qq < wardlist.length; qq++) {
@@ -62,6 +137,17 @@
             var iconqw = new ICON(wardlocs[wardn][0],wardlocs[wardn][1],"/images/pin.png");
             iconqw.type = "wardicon";
             WARDPINS[WARDPINS.length] = iconqw;
+            //////
+            var icon_c = new ICON(wardlocs[wardn][0],wardlocs[wardn][1],"/images/Crime.png");
+            icon_c.type = "crime_circle";
+            icon_c.geom = new THREE.CircleGeometry(1,8);
+            icon_c.material = new THREE.MeshBasicMaterial( {color: 0xff0000, side: THREE.DoubleSide} );
+            icon_c.material.transparent =true;
+            icon_c.material.opacity = 0.5;
+            icon_c.mesh.position.z = 9;
+            icon_c.mesh.material = icon_c.material;
+            icon_c.mesh.geometry = icon_c.geom;
+            CRIME_CIRCLES[CRIME_CIRCLES.length] = icon_c;
         }
     }
 
@@ -132,6 +218,21 @@
         }else {
             if(overlay_icon != null && fire_MAT != null) {
                 overlay_icon.hide();
+            }
+        }
+        //
+        if(show_crime_circle && tile_zoom > 13) {
+            for(var q = 0; q < CRIME_CIRCLES.length; q++) {
+                CRIME_CIRCLES[q].show();
+                var z = Math.pow(2,0-(16 - tile_zoom));
+                var dat = 0.75+((zoom_level / 100)*0.75);
+                var scc = (z * dat) * 5;
+                overlay_icon.mesh.scale.x = scc;
+                overlay_icon.mesh.scale.y = scc;
+            }
+        }else {
+            for(var q = 0; q < CRIME_CIRCLES.length; q++) {
+                CRIME_CIRCLES[q].hide();
             }
         }
     }
@@ -724,7 +825,7 @@ function tileYtoRender(v) {
 
 <!-- SCRIPT STUFF-->
 
-<html>
+<html onClick="onMouseClickHandler();">
 	<head>
 		<title>Map Data</title>
 		<style>
@@ -841,27 +942,27 @@ function tileYtoRender(v) {
     var BUTTON_TILE = null;
     var button_panel = false;
 
-    function updateButtons() {
-        var scaleXb = -0.0155;
-        var scaleYb = 0.0155;
-        var offsetxb = 2.1;
-        var offsetyb = -1.7;
-        //Move the tiles icon into the correct location
-        var w_in = window.innerWidth / 2;
-        var h_in = window.innerHeight / 2;
-        //alert(w_in+" :: "+h_in);
-        //
-        //BUTTON_TILE.mesh.position.x = 0 - ((w_in + offsetx) * scale);
-        //BUTTON_TILE.mesh.position.y = 0 - ((h_in + offsety) + scale);
-        BUTTON_TILE.mesh.position.x = (w_in * scaleXb) + offsetxb;//0 - ((w_in + offsetx) * scale);
-        BUTTON_TILE.mesh.position.y = (h_in * scaleYb) + offsetyb;//0 - ((h_in + offsety) * scale);
+    var init_button = false;
 
+    function updateButtons() {
+        if(!init_button) {
+            var scaleXb = -0.0155;
+            var scaleYb = 0.0155;
+            var offsetxb = 2.1;
+            var offsetyb = -1.7;
+            //Move the tiles icon into the correct location
+            var w_in = window.innerWidth / 2;
+            var h_in = window.innerHeight / 2;
+            BUTTON_TILE.mesh.position.x = (w_in * scaleXb) + offsetxb;//0 - ((w_in + offsetx) * scale);
+            BUTTON_TILE.mesh.position.y = (h_in * scaleYb) + offsetyb;//0 - ((h_in + offsety) * scale);
+        }
         //BUTTON PANEL APPEAR + DISAPPEAR
         if(button_panel) {
             //APPEAR
             for(var q = 0; q < BUTTONS.length; q++) {
                 BUTTONS[q].show();
             }
+            plane_menu.material.opacity = 1.0;
         }else {
             //VANISH
             for(var q = 0; q < BUTTONS.length; q++) {
@@ -869,26 +970,38 @@ function tileYtoRender(v) {
                     BUTTONS[q].hide();
                 }
             }
+            plane_menu.material.opacity = 0.0;
         }
         //LOCATING THE MAIN PANEL
-        var offsetxbVmen = -2;
-        var offsetybVmen = - 11;
+        if(!init_button) {
+            var offsetxbVmen = -2;
+            var offsetybVmen = - 11;
 
-        plane_menu.position.x = (w_in * scaleXb) + offsetxbVmen;
-        plane_menu.position.y = (h_in * scaleYb) + offsetybVmen;
+            plane_menu.position.x = (w_in * scaleXb) + offsetxbVmen;
+            plane_menu.position.y = (h_in * scaleYb) + offsetybVmen;
 
-        //LOCATING THE REST OF THE TILES
-        var by1u = 1;
+            //LOCATING THE REST OF THE TILES
+            var bx1u = -4.3;
+            var by1u = -3.5;
+            var bxoffMain = 10;
+            var byoffMain = 4;
 
-        for(var q =0; q < BUTTONS.length; q++) {
-            if(BUTTONS[q] != BUTTON_TILE) {
-                var xtl = BUTTONS[q].x;
-                var ytl = BUTTONS[q].y;
+            var xTweak = -0.2;
 
-                BUTTONS[q].mesh.position.x = ((w_in * scaleXb) + offsetxbVmen) + (xtl * bx1u);
-                BUTTONS[q].mesh.position.y = ((h_in * scaleXb) + offsetybVmen) + (ytl * by1u);
+            for(var q =0; q < BUTTONS.length; q++) {
+                if(BUTTONS[q] != BUTTON_TILE) {
+                    var xtl = BUTTONS[q].x;
+                    var ytl = BUTTONS[q].y;
 
+                    BUTTONS[q].mesh.position.x = plane_menu.position.x + bxoffMain + (xtl * bx1u) - (ytl * xTweak);
+                    //((w_in * scaleXb) + offsetxbVmen) + (xtl * bx1u) +bxoffMain;
+                    BUTTONS[q].mesh.position.y = plane_menu.position.y + byoffMain + (ytl * by1u);
+                    //((h_in * scaleXb) + offsetybVmen) + (ytl * by1u) + byoffMain;
+                    //BUTTONS[q].mesh.scale = (0.25,0.25,0.25);    
+
+                }
             }
+            init_button = true; //TODO FIXI
         }
     }
 
@@ -913,8 +1026,8 @@ function tileYtoRender(v) {
         this.mesh = new THREE.Mesh(this.geom, this.material);
         this.defimg = str; //IDENT FOR DEFAULT IMAGE
         scene.add(this.mesh);
-        this.identifier = ident
-        this.mesh.position.set(this.x,this.y,25);
+        this.identifier = ident;
+        this.mesh.position.set(this.x,this.y,25);     ///# REMOVED
         BUTTONS[BUTTONS.length]=this;
         this.mesh.rotation.y = toRADS(2);//-(Math.PI / 2);
         this.mesh.rotation.z = toRADS(0);
@@ -937,14 +1050,15 @@ function tileYtoRender(v) {
 
     ///BUTTONS
     new BUTTON(0,0,"images/Bus.png","button_bus");
-    new BUTTON(0,1,"images/Underground.png","button_tube");
-    new BUTTON(1,0,"images/Crime.png","button_bus");
+    new BUTTON(1,0,"images/Underground.png","button_tube");
+    new BUTTON(0,1,"images/Crime.png","button_bus");
     new BUTTON(1,1,"images/Fire.png","button_fire");
-    new BUTTON(2,0,"images/HousePrice.png","button_price");
+    new BUTTON(0,2,"images/HousePrice.png","button_price");
     BUTTON_TILE =  new BUTTON(50,50,"images/TabButton.png","button_tab");
-    new BUTTON(2,1,"images/Tourism.png","button_tourism");
-    new BUTTON(3,0,"images/Train.png","button_train");
-    new BUTTON(3,1,"images/HousesForSale.png","button_sale");
+    //new BUTTON(1,2,"images/Tourism.png","button_tourism");
+    new BUTTON(1,2,"images/Boroughs.png","button_borough");
+    new BUTTON(0,3,"images/Train.png","button_train");
+    new BUTTON(1,3,"images/HousesForSale.png","button_sale");
 
     //END
 

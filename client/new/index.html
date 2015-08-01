@@ -300,11 +300,11 @@
             var data = crime_data[wardn];
             alert(data+"D");
             if(data < 50) {
-                CRIME_CIRCLES[qq].material.color = "0x00ff00";
+                CRIME_CIRCLES[qq].material.color.setHex(0x00ff00); //= "0x00ff00";
             }else if(data < 130) {
-                CRIME_CIRCLES[qq].material.color = "0xffbb00";
+                CRIME_CIRCLES[qq].material.color.setHex(0xffbb00); //= "0xffbb00";
             }else {
-                CRIME_CIRCLES[qq].material.color = "0xff0000";
+                CRIME_CIRCLES[qq].material.color.setHex(0xff0000); //= "0xff0000";
             }
         }
     }

@@ -55,25 +55,25 @@
         }
         if(button_panel) {
             if(mouseInCoords(96,300,824,1021)) {
-                if(boroughmap && boroughmap_type == 0) { //BOROUGH
-                    boroughmap = false;
+                if(enable_boroughmap && boroughmap_type == 0) { //BOROUGH
+                    enable_boroughmap = false;
                 }else {
                     boroughmap_type = 0;
-                    boroughmap = true;
+                    enable_boroughmap = true;
                 }
             }else if(mouseInCoords(11,297,600,777)) {
-                if(boroughmap && boroughmap_type == 1) { //FIRE
-                    boroughmap = false;
+                if(enable_boroughmap && boroughmap_type == 1) { //FIRE
+                    enable_boroughmap = false;
                 }else {
                     boroughmap_type = 1;
-                    boroughmap = true;
+                    enable_boroughmap = true;
                 }
             }else if(mouseInCoords(378,585,822,1012)) {
-                if(boroughmap && boroughmap_type == 2) { //PRICE
-                    boroughmap = false;
+                if(enable_boroughmap && boroughmap_type == 2) { //PRICE
+                    enable_boroughmap = false;
                 }else {
                     boroughmap_type = 2;
-                    boroughmap = true;
+                    enable_boroughmap = true;
                 }
             }else if(mouseInCoords(396,582,606,750)) { //CRIME
                 if(show_crime_circle) {
@@ -99,7 +99,7 @@
     var price_data = null;
     var fire_data = null;
 
-    var requestPHP_S = "http://jakeio.ddns.net";
+    var requestPHP_S = "";/////////////"http://jakeio.ddns.net";   ///CHANGED FOR ACTUALHOSTING
 
     function decodeJSON(str) {
         return jQuery.parseJSON(str);
@@ -107,7 +107,7 @@
 
     //Variables for the buttons to toggle
     var enable_wardpins = true; //OFF BY default     ====>   NOW ALWAYS ON
-    var boroughmap = false; //OFF BY DEFAULT
+    var enable_boroughmap = false; //OFF BY DEFAULT
     var boroughmap_type = 0; //0=default, 1 = fire, 2 = price
     var boro_t_old = -10;
 
@@ -215,7 +215,7 @@
             }
         }
         //
-        if(boroughmap) {  //WAS ENABLE
+        if(enable_boroughmap) {  //WAS ENABLE
             if(overlay_icon != null && fire_MAT != null && tile_zoom < 15) { //CLIP AT 14 DUE TO SMALL BUG (shhhh);
                 //console.log("CAKE!!!");
                 overlay_icon.showT();

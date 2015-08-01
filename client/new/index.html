@@ -295,6 +295,8 @@
         loadPrice();
 
             //CHANGE THE CIRCLE COLORS;
+
+
         for(var qq = 0; qq < wardlist.length; qq++) {
             var wardn = wardlist[qq];
             var data = crime_data[wardn];
@@ -1034,7 +1036,7 @@ function tileYtoRender(v) {
     var BUTTON_y_offset = 0;
 
     //WINDOW SIZE FIXES
-    jQuery('body').on('fullScreenChange', function() { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); alert("CAKE!"); });
+    jQuery('body').on('fullScreenChange', function() { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); });
 
     /////
     var isOpen = false;
@@ -1185,6 +1187,7 @@ ICON.prototype.updatePOS = function(){              //BUG   =   on_zoom_out //x>
     xloc *= dat;
     yloc *= dat; //FINAL TWEAKS
     if(isNaN(xloc) || isNaN(yloc)) {
+        console.log("NaN");
         this.mesh.position.x = -4000; //NOT FAR AWAY ENOUGH
         this.mesh.position.y = -4000;
     }else{
